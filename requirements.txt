@@ -1,0 +1,16 @@
+pandas>=2.0
+numpy
+scikit-learn
+matplotlib
+seaborn
+plotly
+ydata-profiling
+sweetviz
+kmodes
+gower
+umap-learn
+hdbscan
+yellowbrick
+textblob
+scipy
+streamlit
