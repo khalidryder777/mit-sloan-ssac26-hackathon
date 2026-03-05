@@ -1,0 +1,615 @@
+import { useState, useEffect, useRef } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, AreaChart, Area, Cell } from "recharts";
+
+const COLORS = {
+  bg: "#0a0a0f",
+  surface: "#12121a",
+  surfaceLight: "#1a1a2e",
+  accent: "#00d4aa",
+  pink: "#ff6b9d",
+  yellow: "#ffd166",
+  blue: "#4ecdc4",
+  purple: "#a78bfa",
+  orange: "#fb923c",
+  red: "#ef4444",
+  text: "#e8e8f0",
+  textDim: "#8888a0",
+  border: "#2a2a3e",
+};
+
+/* ── InfoTip: inline hover tooltip ── */
+const InfoTip = ({ children, tip, source, color = COLORS.accent }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <span onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      style={{ position: "relative", cursor: "help", borderBottom: "1px dashed " + color + "50", display: "inline" }}>
+      {children}
+      {show && (
+        <span style={{ position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)",
+          background: COLORS.surfaceLight, border: "1px solid " + color + "40", borderRadius: 10, padding: "12px 16px",
+          fontSize: 12, color: COLORS.text, lineHeight: 1.5, width: 280, zIndex: 1000, pointerEvents: "none",
+          boxShadow: "0 8px 32px " + COLORS.bg + "cc, 0 0 0 1px " + color + "15" }}>
+          <span style={{ display: "block", marginBottom: source ? 8 : 0 }}>{tip}</span>
+          {source && <span style={{ display: "block", fontSize: 10, color: color, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", borderTop: "1px solid " + COLORS.border, paddingTop: 6 }}>{source}</span>}
+          <span style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)",
+            width: 10, height: 10, background: COLORS.surfaceLight, borderRight: "1px solid " + color + "40", borderBottom: "1px solid " + color + "40" }} />
+        </span>
+      )}
+    </span>
+  );
+};
+
+const StatCard = ({ value, label, sub, color = COLORS.accent, delay = 0, tip, source }) => {
+  const [visible, setVisible] = useState(false);
+  const [showTip, setShowTip] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.3 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} onMouseEnter={() => setShowTip(true)} onMouseLeave={() => setShowTip(false)}
+      style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(30px)", transition: "all 0.6s ease " + delay + "ms", background: "linear-gradient(135deg, " + color + "08, " + color + "15)", border: "1px solid " + (showTip ? color : color + "30"), borderRadius: 16, padding: "24px 20px", textAlign: "center", position: "relative", cursor: tip ? "help" : "default" }}>
+      <div style={{ fontSize: 36, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace", letterSpacing: -1 }}>{value}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.text, marginTop: 6, lineHeight: 1.3 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 4 }}>{sub}</div>}
+      {tip && showTip && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)",
+          background: COLORS.surfaceLight, border: "1px solid " + color + "40", borderRadius: 10, padding: "12px 16px",
+          fontSize: 12, color: COLORS.text, lineHeight: 1.5, width: 260, zIndex: 1000, textAlign: "left",
+          boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+          {source && <div style={{ fontSize: 10, color, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", borderTop: "1px solid " + COLORS.border, paddingTop: 6, marginTop: 8 }}>{source}</div>}
+          <div style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)",
+            width: 10, height: 10, background: COLORS.surfaceLight, borderRight: "1px solid " + color + "40", borderBottom: "1px solid " + color + "40" }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ChapterHeader = ({ number, title, subtitle }) => {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.2 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(40px)", transition: "all 0.8s ease", marginBottom: 36, paddingTop: 60 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.accent, letterSpacing: 4, textTransform: "uppercase", marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>Chapter {number}</div>
+      <h2 style={{ fontSize: 32, fontWeight: 800, color: COLORS.text, margin: 0, lineHeight: 1.2, fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</h2>
+      {subtitle && <p style={{ fontSize: 15, color: COLORS.textDim, marginTop: 8, lineHeight: 1.6, maxWidth: 600 }}>{subtitle}</p>}
+    </div>
+  );
+};
+
+const Callout = ({ text, color = COLORS.accent }) => (
+  <div style={{ borderLeft: "3px solid " + color, padding: "16px 20px", margin: "24px 0", background: color + "08", borderRadius: "0 12px 12px 0" }}>
+    <p style={{ margin: 0, fontSize: 15, color: COLORS.text, lineHeight: 1.6, fontStyle: "italic" }}>{text}</p>
+  </div>
+);
+
+const ChartCard = ({ title, children, note, source }) => (
+  <div style={{ background: COLORS.surface, border: "1px solid " + COLORS.border, borderRadius: 16, padding: 24, marginBottom: 24 }}>
+    {title && <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.text, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1.5, fontFamily: "'JetBrains Mono', monospace" }}>{title}</div>}
+    {children}
+    {note && <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 12, fontStyle: "italic" }}>{note}</div>}
+    {source && <div style={{ fontSize: 10, color: COLORS.accent, marginTop: 6, fontFamily: "'JetBrains Mono', monospace" }}>{source}</div>}
+  </div>
+);
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: COLORS.surfaceLight, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 14px", fontSize: 12 }}>
+      <div style={{ color: COLORS.text, fontWeight: 700, marginBottom: 4 }}>{label}</div>
+      {payload.map((p, i) => (
+        <div key={i} style={{ color: p.color || COLORS.accent, fontSize: 11 }}>{p.name}: {p.value}{p.unit || ''}</div>
+      ))}
+    </div>
+  );
+};
+
+/* ── HoverMetric: case study metric with tooltip ── */
+const HoverMetric = ({ value, label, tip, src, color }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      style={{ textAlign: "center", padding: 12, background: color + "10", borderRadius: 10, cursor: "help", position: "relative", border: "1px solid " + (show ? color + "50" : "transparent"), transition: "border 0.2s" }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.text, fontFamily: "'JetBrains Mono', monospace" }}>{value}</div>
+      <div style={{ fontSize: 10, color: COLORS.textDim, marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+      {show && tip && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: COLORS.surfaceLight, border: "1px solid " + color + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 250, zIndex: 1000, textAlign: "left", boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+          {src && <div style={{ fontSize: 10, color, fontFamily: "'JetBrains Mono', monospace", marginTop: 6, borderTop: "1px solid " + COLORS.border, paddingTop: 4 }}>{src}</div>}
+          <div style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 10, height: 10, background: COLORS.surfaceLight, borderRight: "1px solid " + color + "40", borderBottom: "1px solid " + color + "40" }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── MiniGapChart: separate charts per metric for unit consistency ── */
+const MiniGapChart = ({ data, unit, domain, title, tip, source }) => {
+  const [showTip, setShowTip] = useState(false);
+  const fmt = (v) => unit === '$' ? ('$' + v) : (v + '%');
+  return (
+    <div style={{ position: "relative" }} onMouseEnter={() => setShowTip(true)} onMouseLeave={() => setShowTip(false)}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, marginBottom: 8, cursor: "help" }}>{title}</div>
+      <ResponsiveContainer width="100%" height={120}>
+        <BarChart data={data} barGap={4}>
+          <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+          <XAxis dataKey="category" stroke={COLORS.textDim} fontSize={10} />
+          <YAxis stroke={COLORS.textDim} fontSize={10} tickFormatter={fmt} domain={domain} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={28}>
+            {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      {showTip && tip && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", background: COLORS.surfaceLight, border: "1px solid " + COLORS.pink + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 250, zIndex: 1000, boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+          {source && <div style={{ fontSize: 10, color: COLORS.pink, fontFamily: "'JetBrains Mono', monospace", marginTop: 6, borderTop: "1px solid " + COLORS.border, paddingTop: 4 }}>{source}</div>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── HoverStat: for purpose-driven loyalty section ── */
+const HoverStat = ({ stat, desc, tip, src, color }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={{ textAlign: "center", cursor: "help", position: "relative" }} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      <div style={{ fontSize: 28, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace" }}>{stat}</div>
+      <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 6, lineHeight: 1.4 }}>{desc}</div>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: COLORS.surfaceLight, border: "1px solid " + color + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 250, zIndex: 1000, textAlign: "left", boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+          <div style={{ fontSize: 10, color, fontFamily: "'JetBrains Mono', monospace", marginTop: 6, borderTop: "1px solid " + COLORS.border, paddingTop: 4 }}>{src}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── HoverSlide: for presentation flow ── */
+const HoverSlide = ({ n, title, time, who, tip }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      style={{ background: COLORS.bg, borderRadius: 10, padding: "12px 10px", textAlign: "center", border: "1px solid " + (show ? COLORS.accent + "50" : COLORS.border), cursor: "help", position: "relative", transition: "border 0.2s" }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.accent, fontFamily: "'JetBrains Mono', monospace" }}>{n}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.text, marginTop: 4 }}>{title}</div>
+      <div style={{ fontSize: 10, color: COLORS.textDim, marginTop: 2 }}>{time}</div>
+      <div style={{ fontSize: 9, color: who === "Khalid" ? COLORS.pink : who === "Tucker" ? COLORS.accent : COLORS.yellow, marginTop: 4, fontWeight: 600 }}>{who}</div>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: COLORS.surfaceLight, border: "1px solid " + COLORS.accent + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 220, zIndex: 1000, textAlign: "left", boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── HoverCVI: for CVI formula bars ── */
+const HoverCVI = ({ name, weight, color, desc, tip }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      style={{ display: "flex", alignItems: "center", gap: 12, cursor: "help", position: "relative" }}>
+      <div style={{ width: 50, textAlign: "right", fontSize: 16, fontWeight: 800, color, fontFamily: "'JetBrains Mono', monospace" }}>{(weight * 100).toFixed(0)}%</div>
+      <div style={{ flex: 1, background: COLORS.bg, borderRadius: 8, overflow: "hidden", height: 32 }}>
+        <div style={{ width: (weight * 100 * 3.33) + "%", height: "100%", background: color + (show ? "60" : "40"), borderRadius: 8, display: "flex", alignItems: "center", paddingLeft: 10, transition: "background 0.2s" }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: COLORS.text }}>{name}</span>
+        </div>
+      </div>
+      <div style={{ fontSize: 10, color: COLORS.textDim, width: 180 }}>{desc}</div>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", left: 60, background: COLORS.surfaceLight, border: "1px solid " + color + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 280, zIndex: 1000, boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Archetype card with hover expand ── */
+const ArchetypeCard = ({ f }) => {
+  const [show, setShow] = useState(false);
+  const extra = {
+    IsoFan: { text: "3x more prevalent in women's sports than men's. Not a deficit — a reflection of missing social infrastructure. May be highest per-capita digital spenders.", src: "Wasserman, 'IsoFan' Download Report, 2025" },
+    DuoFan: { text: "The bridge segment. One referral converts them to Social Fans. Watch parties, 'bring a friend' promotions, shared streaming are high-leverage activation points.", src: "Wasserman, 'New Faces' Report, 2025" },
+    "Social Fan": { text: "Most familiar to traditional marketing but only 54-59% vs 80%+ in men's sports. Legacy playbooks underperform because communal fandom is less dominant here.", src: "Wasserman, 'New Faces' Report, 2025" },
+  };
+  const e = extra[f.type];
+  return (
+    <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      style={{ background: f.color + "08", border: "1px solid " + (show ? f.color : f.color + "30"), borderRadius: 16, padding: 20, cursor: "help", transition: "border 0.2s" }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: f.color, fontFamily: "'JetBrains Mono', monospace" }}>{f.type}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: COLORS.text, margin: "8px 0 4px" }}>{f.womens}%</div>
+      <div style={{ fontSize: 11, color: COLORS.textDim, lineHeight: 1.5, marginBottom: 12 }}>{f.description}</div>
+      <div style={{ fontSize: 11, color: f.color, lineHeight: 1.5, borderTop: "1px solid " + f.color + "20", paddingTop: 10 }}>{f.opportunity}</div>
+      {show && e && (
+        <div style={{ fontSize: 11, color: COLORS.text, lineHeight: 1.5, borderTop: "1px solid " + f.color + "20", paddingTop: 10, marginTop: 8 }}>
+          {e.text}
+          <div style={{ fontSize: 10, color: f.color, fontFamily: "'JetBrains Mono', monospace", marginTop: 6 }}>{e.src}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Athlete Arbitrage hover boxes ── */
+const ArbitrageBox = ({ value, title, sub, tip, src, color }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+      style={{ textAlign: "center", padding: 16, background: color + "10", borderRadius: 12, cursor: "help", position: "relative", border: "1px solid " + (show ? color + "50" : "transparent"), transition: "border 0.2s" }}>
+      <div style={{ fontSize: 36, fontWeight: 800, color }}>{value}</div>
+      <div style={{ fontSize: 13, color: COLORS.text, marginTop: 4 }}>{title}</div>
+      <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 2 }}>{sub}</div>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: COLORS.surfaceLight, border: "1px solid " + color + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 250, zIndex: 1000, textAlign: "left", boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {tip}
+          <div style={{ fontSize: 10, color, fontFamily: "'JetBrains Mono', monospace", marginTop: 6, borderTop: "1px solid " + COLORS.border, paddingTop: 4 }}>{src}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Media deal hover bar ── */
+const MediaDealRow = ({ d }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} style={{ cursor: "help", position: "relative" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: d.color }}>{d.league}</span>
+        <span style={{ fontSize: 20, fontWeight: 800, color: d.color, fontFamily: "'JetBrains Mono', monospace" }}>{d.growth}</span>
+      </div>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ flex: d.before, background: d.color + "30", height: 28, borderRadius: 6, display: "flex", alignItems: "center", paddingLeft: 8, fontSize: 11, color: COLORS.textDim }}>{"$" + d.before + "M"}</div>
+        <span style={{ fontSize: 16, color: COLORS.textDim }}>→</span>
+        <div style={{ flex: d.after, background: d.color + "60", height: 28, borderRadius: 6, display: "flex", alignItems: "center", paddingLeft: 8, fontSize: 11, color: COLORS.text, fontWeight: 600 }}>{"$" + d.after + "M"}</div>
+      </div>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: COLORS.surfaceLight, border: "1px solid " + d.color + "40", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: COLORS.text, lineHeight: 1.5, width: 260, zIndex: 1000, boxShadow: "0 8px 32px " + COLORS.bg + "cc" }}>
+          {d.tip}
+          <div style={{ fontSize: 10, color: d.color, fontFamily: "'JetBrains Mono', monospace", marginTop: 6, borderTop: "1px solid " + COLORS.border, paddingTop: 4 }}>{d.src}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default function Dashboard() {
+  const revenueData = [
+    { year: "2021", revenue: 0.45 }, { year: "2022", revenue: 0.62 }, { year: "2023", revenue: 0.98 },
+    { year: "2024", revenue: 1.88 }, { year: "2025P", revenue: 2.35 },
+  ];
+  const revenueBreakdown = [
+    { name: "Sponsorship & Merch", value: 1260, color: COLORS.accent },
+    { name: "Broadcast Media", value: 590, color: COLORS.pink },
+    { name: "Matchday", value: 500, color: COLORS.yellow },
+  ];
+  const gapMediaRev = [{ category: "Men's", value: 1.25, fill: COLORS.textDim }, { category: "Women's", value: 0.25, fill: COLORS.pink }];
+  const gapAdSpot = [{ category: "Men's", value: 2.0, fill: COLORS.textDim }, { category: "Women's", value: 0.5, fill: COLORS.pink }];
+  const gapMarketShare = [{ category: "Men's", value: 98, fill: COLORS.textDim }, { category: "Women's", value: 2, fill: COLORS.pink }];
+  const fanArchetypes = [
+    { type: "IsoFan", womens: 19.5, mens: 5.6, description: "Consumes alone. Low social. High digital spend.", opportunity: "46% wish they had someone to share fandom with. 62% would join a fan group.", color: COLORS.pink },
+    { type: "DuoFan", womens: 26.5, mens: 8, description: "Shares with one trusted person. Intimate consumption.", opportunity: "Bridge between solo and social. Referral potential.", color: COLORS.yellow },
+    { type: "Social Fan", womens: 56.5, mens: 82, description: "Communal engagement. Groups. Discord. Watch parties.", opportunity: "Resembles men's sports fandom. Familiar activation models.", color: COLORS.accent },
+  ];
+  const fanArchetypeRadar = [
+    { trait: "Live\nAttendance", IsoFan: 25, DuoFan: 55, SocialFan: 85 }, { trait: "Digital\nSpend", IsoFan: 80, DuoFan: 65, SocialFan: 50 },
+    { trait: "Brand\nRecall", IsoFan: 70, DuoFan: 60, SocialFan: 75 }, { trait: "Social\nAmplify", IsoFan: 15, DuoFan: 40, SocialFan: 90 },
+    { trait: "Merch\nPurchase", IsoFan: 65, DuoFan: 55, SocialFan: 70 }, { trait: "Values\nAlignment", IsoFan: 85, DuoFan: 70, SocialFan: 60 },
+  ];
+  const sponsorROI = [
+    { metric: "Brand Recall", womens: 85, mens: 42 }, { metric: "Purchase Intent", womens: 75, mens: 64 },
+    { metric: "Try Products", womens: 75, mens: 64 }, { metric: "Support Sponsors", womens: 58, mens: 45 },
+    { metric: "Favorability", womens: 30, mens: 20 },
+  ];
+  const caseStudies = [
+    { name: "Angel City FC", m: [["$280M","Valuation","Highest women's soccer valuation globally. $20M sponsorship in inaugural season.","Forbes NWSL Valuations, 2024"],["$29","Rev/Follower","Sponsorship rev per social follower. vs $13 Dodgers, $8 Yankees.","Hashtag Sports Awards, 2024"],["300%+","DB Growth","Fan DB growth over 2yrs via CRM + '48-hour window' post-match purchase trigger.","HubSpot x Angel City Case Study"]], color: COLORS.pink, highlight: "Outperforms 15 MLS & 25 MLB teams per-game on sponsorship" },
+    { name: "GS Valkyries", m: [["$500M","Valuation","10x from $50M expansion fee in <2 years. Backed by Lacob & Guber.","Sports Illustrated, 2025"],["18,064","Avg Attendance","All 22 home games sold out. Higher than 15 NBA teams in 2024-25.","SportsPro, 2025"],["<5%","Warriors Overlap","Proving acquisition of a genuinely new audience segment: 'Bright Believers'.","SBJ Valkyries Blueprint, 2025"]], color: COLORS.accent, highlight: "10x valuation increase in under 2 years from $50M fee" },
+    { name: "Nebraska VB", m: [["92,003","Record Attend.","2023 stadium match. World record for women's sports, surpassing FC Barcelona.","WHYY / NCAA Reports, 2023"],["$7.3M","FY24 Revenue","$1.3M profit in FY24 — but FY25 swung to -$1.38M as costs professionalized.","SI.com NCAA Financials, 2025"],["306","Sellout Streak","Consecutive sellouts at Devaney Center. 'Volleyball Day' filled every Lincoln hotel.","HVS Market Report, 2023"]], color: COLORS.yellow, highlight: "World record attendance. $1.4M single-night stadium revenue" },
+  ];
+  const identityData = [
+    { name: "Women's Sports Generally", value: 50, color: COLORS.accent },
+    { name: "Specific Team", value: 37, color: COLORS.pink },
+    { name: "Specific League", value: 13, color: COLORS.yellow },
+  ];
+  const genData = [
+    { gen: "Gen Z", avidity: 78.8, purchaseLift: 46, trust: 77 }, { gen: "Millennial", avidity: 75, purchaseLift: 38, trust: 68 },
+    { gen: "Gen X", avidity: 65, purchaseLift: 25, trust: 55 }, { gen: "Boomer", avidity: 59.6, purchaseLift: 15, trust: 42 },
+  ];
+  const valuationTimeline = [
+    { year: "2022", wnba: 1.0, nwsl: 0.3 }, { year: "2023", wnba: 1.6, nwsl: 0.5 }, { year: "2024", wnba: 2.6, nwsl: 0.8 },
+    { year: "2025", wnba: 3.5, nwsl: 1.1 }, { year: "2027P", wnba: 4.3, nwsl: 1.6 },
+  ];
+  const mediaDeals = [
+    { league: "WNBA", before: 67, after: 200, growth: "3x", color: COLORS.accent, tip: "11-year deal starting 2026, worth ~$2.2B total. Growing 2.6x faster than the NBA's recent renewal.", src: "SBJ / newday studio, 2025" },
+    { league: "NWSL", before: 1.5, after: 60, growth: "40x", color: COLORS.pink, tip: "Domestic broadcast packages signed in 2024 boosted annual media revenue by a factor of 40.", src: "newday studio, 2025" },
+  ];
+  const chapters = [
+    { id: "hero", label: "Overview" }, { id: "revenue", label: "Revenue" }, { id: "gap", label: "The Gap" },
+    { id: "fans", label: "The Fan" }, { id: "archetypes", label: "Archetypes" }, { id: "sponsors", label: "Sponsors" },
+    { id: "outliers", label: "Outliers" }, { id: "play", label: "The Play" },
+  ];
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  return (
+    <div style={{ background: COLORS.bg, minHeight: "100vh", color: COLORS.text, fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet" />
+      {/* NAV */}
+      <div style={{ position: "sticky", top: 0, zIndex: 100, background: COLORS.bg + "ee", backdropFilter: "blur(20px)", borderBottom: "1px solid " + COLORS.border, padding: "0 24px" }}>
+        <div style={{ display: "flex", gap: 4, overflowX: "auto", maxWidth: 900, margin: "0 auto", padding: "10px 0" }}>
+          {chapters.map((ch) => (
+            <button key={ch.id} onClick={() => scrollTo(ch.id)} style={{ background: "none", border: "1px solid " + COLORS.border, color: COLORS.textDim, padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5, transition: "all 0.2s" }}
+              onMouseOver={e => { e.target.style.borderColor = COLORS.accent; e.target.style.color = COLORS.accent; }}
+              onMouseOut={e => { e.target.style.borderColor = COLORS.border; e.target.style.color = COLORS.textDim; }}
+            >{ch.label}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px 100px" }}>
+        {/* HERO */}
+        <div id="hero" style={{ paddingTop: 60, paddingBottom: 40, textAlign: "center" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.accent, letterSpacing: 5, textTransform: "uppercase", marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>SSAC 2026 · Domain Intelligence</div>
+          <h1 style={{ fontSize: 44, fontWeight: 900, margin: 0, lineHeight: 1.1, fontFamily: "'Playfair Display', Georgia, serif", background: "linear-gradient(135deg, " + COLORS.text + ", " + COLORS.accent + ")", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>The $2.5B Blind Spot</h1>
+          <p style={{ fontSize: 17, color: COLORS.textDim, marginTop: 16, maxWidth: 560, margin: "16px auto 0", lineHeight: 1.6 }}>Women's sports fandom is exploding. The money hasn't caught up. Here's every number, insight, and angle you need to win.</p>
+          <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 8, fontStyle: "italic" }}>Hover any stat for deeper context and source</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 32 }}>
+            <StatCard value="$1.88B" label="2024 Global Revenue" sub="Nearly doubled from $981M" color={COLORS.accent} delay={0} tip="Global women's elite sports revenue surged from $981M (2023) to $1.88B (2024), beating Deloitte's forecast by $600M. Projected $2.35B in 2025." source="Deloitte, 'Beyond the Billion-Dollar Barrier', 2025" />
+            <StatCard value="4.5x" label="Growth vs Men's" sub="Revenue growth rate 2022-24" color={COLORS.pink} delay={100} tip="Women's sports revenue grew approximately 4.5 times faster than men's sports between 2022 and 2024 — the fastest growth period in history." source="Deloitte / newday studio, 2025" />
+            <StatCard value="66%" label="Feel Misunderstood" sub="By sports organizations" color={COLORS.yellow} delay={200} tip="66% of women sports fans say sports organizations don't understand them. 39% say brands don't recognize them as fans. This is the funnel leak." source="Wasserman, 'Her Fandom, Her Buying Power', 2025" />
+            <StatCard value="84%" label="Decision Makers" sub="Of sports household purchases" color={COLORS.blue} delay={300} tip="84% of women sports fans are key decision-makers: 48% primary + 36% shared. They're the household sports CFO." source="Wasserman, 'Her Fandom, Her Buying Power', 2025" />
+          </div>
+        </div>
+        {/* CH1: REVENUE */}
+        <div id="revenue">
+          <ChapterHeader number="01" title="The Hockey Stick" subtitle="Revenue nearly doubled in a single year. This isn't a trend line — it's a market correction in progress." />
+          <ChartCard title="Global Women's Sports Revenue ($B)" source="Deloitte Sports Business Group, 2024-2025">
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={revenueData}>
+                <defs><linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={COLORS.accent} stopOpacity={0.3}/><stop offset="95%" stopColor={COLORS.accent} stopOpacity={0}/></linearGradient></defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border}/><XAxis dataKey="year" stroke={COLORS.textDim} fontSize={12}/><YAxis stroke={COLORS.textDim} fontSize={12} tickFormatter={v => "$"+v+"B"} domain={[0,2.6]}/>
+                <Tooltip content={<CustomTooltip/>}/><Area type="monotone" dataKey="revenue" stroke={COLORS.accent} strokeWidth={3} fill="url(#revGrad)" name="Revenue ($B)"/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <ChartCard title="2025 Revenue Mix ($M)" source="Deloitte Global Projections, 2025">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={revenueBreakdown} layout="vertical" barSize={28}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} horizontal={false}/><XAxis type="number" stroke={COLORS.textDim} fontSize={11} tickFormatter={v => "$"+v+"M"}/>
+                  <YAxis type="category" dataKey="name" stroke={COLORS.textDim} fontSize={11} width={110} tick={{fill:COLORS.textDim}}/><Tooltip content={<CustomTooltip/>}/>
+                  <Bar dataKey="value" radius={[0,6,6,0]} name="Revenue ($M)">{revenueBreakdown.map((d,i)=><Cell key={i} fill={d.color}/>)}</Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ fontSize: 12, color: COLORS.textDim, marginTop: 4 }}>
+                <InfoTip tip="In men's sports, broadcast rights dominate. In women's sports, sponsorship leads at 54% — brands are already investing. The question is whether they're reaching the right fans." source="Deloitte, 'Beyond the Billion-Dollar Barrier', 2025" color={COLORS.accent}>Sponsorship leads at 54% — unlike men's sports where broadcast dominates</InfoTip>
+              </div>
+            </ChartCard>
+            <ChartCard title="Media Deal Repricing ($M/year)">
+              <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "10px 0" }}>{mediaDeals.map(d => <MediaDealRow key={d.league} d={d}/>)}</div>
+              <div style={{ fontSize: 12, color: COLORS.textDim, marginTop: 12 }}>
+                <InfoTip tip="The WNBA's new media deal is growing 2.6x faster than the NBA's recent renewal — signaling the 'vicious cycle' of limited coverage and low returns is breaking." source="SBJ / newday studio, 2025" color={COLORS.accent}>WNBA deal growing 2.6x faster than NBA's recent renewal</InfoTip>
+              </div>
+            </ChartCard>
+          </div>
+          <Callout text='"The conversation has moved beyond proving value to scaling infrastructure and establishing long-term sustainability." — Deloitte 2025' color={COLORS.accent}/>
+        </div>
+        {/* CH2: THE GAP */}
+        <div id="gap">
+          <ChapterHeader number="02" title="The Monetization Gap" subtitle="The audience is here. The money isn't. And in one key metric, the gap is actually getting worse."/>
+          <ChartCard title="Men's vs Women's: The Pricing Mismatch" source="McKinsey, 'Closing the Monetization Gap', 2025">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              <MiniGapChart data={gapMediaRev} unit="$" domain={[0,1.5]} title="Media Rev / Viewing Hour ($)" tip="Men's earns $1.25/hr vs $0.25 for women's — 5x gap. Men's growing at +7% CAGR while women's declining at -3%." source="McKinsey, 2025"/>
+              <MiniGapChart data={gapAdSpot} unit="$" domain={[0,2.5]} title="NCAA Final 30s Ad Spot ($M)" tip="Women's final: 18.9M viewers, $500K/spot. Men's final: 14.8M viewers, $2M/spot. More viewers, 4x cheaper." source="McKinsey / SBJ, 2024"/>
+              <MiniGapChart data={gapMarketShare} unit="%" domain={[0,100]} title="Share of U.S. Sports Market (%)" tip="Women's sports = under 2% of ~$75B U.S. market despite 80% of fans following women's sports." source="McKinsey, 2025"/>
+            </div>
+          </ChartCard>
+          <div style={{ background: "linear-gradient(135deg, " + COLORS.red + "10, " + COLORS.pink + "10)", border: "1px solid " + COLORS.red + "30", borderRadius: 16, padding: 24, marginBottom: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.red, marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>THE STAT THAT SHOULD MAKE YOU ANGRY</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 16, alignItems: "center" }}>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 28, fontWeight: 800, color: COLORS.text }}>18.9M</div><div style={{ fontSize: 12, color: COLORS.textDim }}>Women's NCAA Final viewers</div><div style={{ fontSize: 18, fontWeight: 700, color: COLORS.pink, marginTop: 4 }}>$500K / ad spot</div></div>
+              <div style={{ fontSize: 24, color: COLORS.textDim }}>vs</div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 28, fontWeight: 800, color: COLORS.text }}>14.8M</div><div style={{ fontSize: 12, color: COLORS.textDim }}>Men's NCAA Final viewers</div><div style={{ fontSize: 18, fontWeight: 700, color: COLORS.textDim, marginTop: 4 }}>$2M / ad spot</div></div>
+            </div>
+            <div style={{ textAlign: "center", fontSize: 13, color: COLORS.red, marginTop: 16, fontWeight: 600 }}>More viewers. 4x cheaper. That's not a valuation model — it's a market failure.</div>
+            <div style={{ textAlign: "center", fontSize: 10, color: COLORS.textDim, marginTop: 6, fontFamily: "'JetBrains Mono', monospace" }}>McKinsey / SBJ, 2024 NCAA Championships</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <StatCard value="-3%" label="Women's Media Rev CAGR" sub="Revenue per viewing hour declining" color={COLORS.red} tip="Women's media rev/hr declining at -3% CAGR (2017-2023) even as viewership surges. Contracts haven't adjusted to reality." source="McKinsey, 'Tackling the Sports Media Divide', 2025"/>
+            <StatCard value="+7%" label="Men's Media Rev CAGR" sub="Revenue per viewing hour growing" color={COLORS.accent} tip="Men's media rev/hr grew +7% CAGR over the same period. The gap is actively widening in monetization efficiency." source="McKinsey, 'Tackling the Sports Media Divide', 2025"/>
+          </div>
+          <Callout text="The gap isn't just about less money — it's about money actively moving in the wrong direction relative to attention. That's your hackathon thesis." color={COLORS.pink}/>
+        </div>
+        {/* CH3: THE FAN */}
+        <div id="fans">
+          <ChapterHeader number="03" title="The Fan Nobody Designed For" subtitle="She drives 84% of household sports purchases, controls 75% of discretionary spending by 2030, and 66% say you don't understand her. She's right."/>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
+            <StatCard value="84%" label="Key Purchase Decision Makers" sub="48% primary + 36% shared" color={COLORS.accent} delay={0} tip="From 7,100+ women across 10 countries. 48% primary decision-maker, 36% shared. Combined: 84% drive household sports spending." source="Wasserman, 'Her Fandom, Her Buying Power', 2025"/>
+            <StatCard value="75%" label="Discretionary Spend by 2030" sub="Women control household wallets" color={COLORS.pink} delay={100} tip="By 2030, women projected to control 75% of discretionary spending and lead 85% of household purchase decisions." source="Wasserman, 'Her Fandom, Her Buying Power', 2025"/>
+            <StatCard value="91%" label="Mothers in Kids' Sports" sub="Gateway to $77B youth market" color={COLORS.yellow} delay={200} tip="91% of women fans who are mothers are actively involved in children's sports decisions — connecting to the $77B youth sports industry." source="Wasserman, 'Her Fandom, Her Buying Power', 2025"/>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <ChartCard title="Fandom Identity: Sport > Team > League" source="Wasserman, 'New Faces' Report, 2025">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={identityData} layout="vertical" barSize={24}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} horizontal={false}/><XAxis type="number" stroke={COLORS.textDim} fontSize={11} tickFormatter={v=>v+"%"} domain={[0,60]}/>
+                  <YAxis type="category" dataKey="name" stroke={COLORS.textDim} fontSize={10} width={110} tick={{fill:COLORS.textDim}}/><Tooltip content={<CustomTooltip/>}/>
+                  <Bar dataKey="value" radius={[0,6,6,0]} name="% of Fans">{identityData.map((d,i)=><Cell key={i} fill={d.color}/>)}</Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ fontSize: 12, color: COLORS.textDim, marginTop: 4 }}>
+                <InfoTip tip="50% are fans of women's sports as a movement, not a team. Athletes and storylines are the hooks. 'Women's sports pass' bundles > team-specific packages." source="Wasserman, 'New Faces', 2025" color={COLORS.accent}>50% are fans of women's sports generally — athletes are the hook, not teams</InfoTip>
+              </div>
+            </ChartCard>
+            <ChartCard title="Generational Avidity & Commercial Value (%)" source="Wasserman / Parity, 2025">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={genData} barGap={2}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border}/><XAxis dataKey="gen" stroke={COLORS.textDim} fontSize={11}/><YAxis stroke={COLORS.textDim} fontSize={11} tickFormatter={v=>v+"%"} domain={[0,100]}/>
+                  <Tooltip content={<CustomTooltip/>}/>
+                  <Bar dataKey="avidity" fill={COLORS.accent} radius={[4,4,0,0]} name="Avidity %" barSize={18}/>
+                  <Bar dataKey="purchaseLift" fill={COLORS.pink} radius={[4,4,0,0]} name="Purchase Lift %" barSize={18}/>
+                  <Bar dataKey="trust" fill={COLORS.yellow} radius={[4,4,0,0]} name="Trust in Endorsements %" barSize={18}/>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ display: "flex", gap: 16, marginTop: 8, justifyContent: "center" }}>
+                {[["Avidity",COLORS.accent],["Purchase Lift",COLORS.pink],["Trust",COLORS.yellow]].map(([l,c])=>(
+                  <div key={l} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: COLORS.textDim }}><div style={{ width: 8, height: 8, borderRadius: 2, background: c }}/>{l}</div>
+                ))}
+              </div>
+            </ChartCard>
+          </div>
+          <div style={{ background: COLORS.surface, border: "1px solid " + COLORS.border, borderRadius: 16, padding: 24, marginTop: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.yellow, marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>PURPOSE-DRIVEN LOYALTY</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              <HoverStat stat="2.1x" desc="More likely to consider a brand because of sponsor association vs men's sports fans" tip="Women's sports fans show 2.1x higher purchase consideration for sponsors — loyalty driven by values alignment, not just logo exposure." src="SportsPro / The Space Between, 2024" color={COLORS.yellow}/>
+              <HoverStat stat="50%" desc={'"Strongly agree" sponsors should make the world better (vs 20% men\'s fans)'} tip="Half hold sponsors to a higher ethical standard. Creates deeper loyalty when met — and backlash risk when violated." src="Wasserman, 'New Faces' Report, 2025" color={COLORS.yellow}/>
+              <HoverStat stat="89%" desc="More inspired to take social action with women athlete partners" tip="89% are more inspired to purchase, donate, or share when brands partner with women athletes. An outcome multiplier no reach metric captures." src="Wasserman/RBC, 'New Economy' Pt I, 2023" color={COLORS.yellow}/>
+            </div>
+          </div>
+        </div>
+        {/* CH4: ARCHETYPES */}
+        <div id="archetypes">
+          <ChapterHeader number="04" title="The Three Faces of Fandom" subtitle="Wasserman identified IsoFans, DuoFans, and Social Fans — and the distribution looks nothing like men's. This is your hackathon's secret weapon."/>
+          <ChartCard title="Fan Archetype Prevalence: Women's vs Men's Sports (%)" source="Wasserman, 'New Faces Redefining Women's Sports Fans', 2025">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={fanArchetypes} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border}/><XAxis dataKey="type" stroke={COLORS.textDim} fontSize={13} fontWeight={600}/>
+                <YAxis stroke={COLORS.textDim} fontSize={11} tickFormatter={v=>v+"%"} domain={[0,100]}/><Tooltip content={<CustomTooltip/>}/>
+                <Bar dataKey="womens" radius={[6,6,0,0]} name="Women's Sports %" barSize={36}>{fanArchetypes.map((d,i)=><Cell key={i} fill={d.color}/>)}</Bar>
+                <Bar dataKey="mens" fill={COLORS.textDim+"60"} radius={[6,6,0,0]} name="Men's Sports %" barSize={36}/>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>{fanArchetypes.map(f=><ArchetypeCard key={f.type} f={f}/>)}</div>
+          <ChartCard title="Behavioral Profiles by Archetype (Modeled)" note="Modeled from Wasserman research. IsoFans: high digital spend + values, low social amplification. Your undervalued segment." source="Modeled from Wasserman / The Collective, 2025">
+            <ResponsiveContainer width="100%" height={300}>
+              <RadarChart data={fanArchetypeRadar}>
+                <PolarGrid stroke={COLORS.border}/><PolarAngleAxis dataKey="trait" stroke={COLORS.textDim} fontSize={10}/><PolarRadiusAxis stroke={COLORS.border} fontSize={9} domain={[0,100]}/>
+                <Radar name="IsoFan" dataKey="IsoFan" stroke={COLORS.pink} fill={COLORS.pink} fillOpacity={0.15} strokeWidth={2}/>
+                <Radar name="DuoFan" dataKey="DuoFan" stroke={COLORS.yellow} fill={COLORS.yellow} fillOpacity={0.1} strokeWidth={2}/>
+                <Radar name="Social Fan" dataKey="SocialFan" stroke={COLORS.accent} fill={COLORS.accent} fillOpacity={0.1} strokeWidth={2}/>
+                <Legend wrapperStyle={{ fontSize: 11, color: COLORS.textDim }}/>
+              </RadarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+          <Callout text="The IsoFan is your differentiator. 18-21% of women's sports fans consume alone, are invisible to traditional marketing, but may be the highest per-capita digital spenders. Find them. Quantify their value. Name the segment. Win." color={COLORS.pink}/>
+        </div>
+        {/* CH5: SPONSORS */}
+        <div id="sponsors">
+          <ChapterHeader number="05" title="The Sponsor Advantage" subtitle="It's not charity anymore. Brands sponsoring women's sports outperform on every metric that matters."/>
+          <ChartCard title="Sponsorship Performance: Women's vs Men's Sports (%)" source="MarketCast / Women's Sport Trust, 2024-2025">
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={sponsorROI} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border}/><XAxis dataKey="metric" stroke={COLORS.textDim} fontSize={11}/>
+                <YAxis stroke={COLORS.textDim} fontSize={11} tickFormatter={v=>v+"%"} domain={[0,100]}/><Tooltip content={<CustomTooltip/>}/>
+                <Bar dataKey="womens" fill={COLORS.accent} radius={[6,6,0,0]} name="Women's Sports %" barSize={24}/>
+                <Bar dataKey="mens" fill={COLORS.textDim+"60"} radius={[6,6,0,0]} name="Men's Sports %" barSize={24}/>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            <StatCard value="286%" label="WNBA Changemaker ROI" sub="Average sponsor return" color={COLORS.accent} tip="WNBA Changemaker partners (Nike, Google, AT&T) saw 286% ROI. Sponsoring women's sports is a high-performance investment, not charity." source="Deloitte, 'Beyond the Billion-Dollar Barrier', 2025"/>
+            <StatCard value="312%" label="Sponsor Value Growth" sub="WNBA YoY" color={COLORS.pink} tip="WNBA sponsor value increased 312% YoY. Caitlin Clark effect + expansion teams + increased media driving rapid repricing." source="SponsorUnited, WNBA Report, 2024-25"/>
+            <StatCard value="$76M" label="WNBA Sponsorship Rev" sub="2024 team total" color={COLORS.yellow} tip="Total WNBA team sponsorship: $76M in 2024. Jersey patch for top team: ~$1.7-2.1M/year." source="SponsorUnited, WNBA Report, 2024-25"/>
+            <StatCard value="$75M" label="NWSL Sponsorship Rev" sub="2024 total" color={COLORS.blue} tip="NWSL total: $75M. Healthcare + finance lead all categories at $55M+, targeting female household decision-makers." source="SponsorUnited / The GIST, 2025"/>
+          </div>
+          <div style={{ background: COLORS.surface, border: "1px solid " + COLORS.border, borderRadius: 16, padding: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.accent, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>THE ATHLETE ARBITRAGE</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 1fr", gap: 16, alignItems: "center" }}>
+              <ArbitrageBox value="2x" title="Fan Engagement" sub="per dollar of athlete compensation" tip="Women athletes drive 2x more social engagement. Score higher on trust, role model perception, and inspiration — all conversion multipliers." src="Wasserman/RBC, 'New Economy' Pt I, 2023" color={COLORS.pink}/>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 14, color: COLORS.textDim }}>BUT</div></div>
+              <ArbitrageBox value="21x" title="Less in Salary" sub="average playing compensation gap" tip="Men earn ~21x more in salary. 90% of partnership dollars go to men. Women depend on sponsorship 2x more because base pay is so low." src="Wasserman/RBC, 'New Economy' Pt I, 2023" color={COLORS.red}/>
+            </div>
+            <div style={{ textAlign: "center", fontSize: 13, color: COLORS.accent, marginTop: 16, fontWeight: 600 }}>
+              <InfoTip tip="The market pays based on audience size (reach). Women athletes deliver on outcomes: trust, engagement, purchase intent, social action. The compensation model measures the wrong variable." source="Wasserman/RBC, 'New Economy of Sports' Part I, 2023" color={COLORS.accent}>The market pays for reach. Women athletes deliver on outcomes. The model is broken.</InfoTip>
+            </div>
+          </div>
+        </div>
+        {/* CH6: OUTLIERS */}
+        <div id="outliers">
+          <ChapterHeader number="06" title="The Outliers" subtitle="These properties built the playbook. Your hackathon framing: find these fan profiles hiding undermonetized elsewhere."/>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {caseStudies.map(cs=>(
+              <div key={cs.name} style={{ background: cs.color + "06", border: "1px solid " + cs.color + "25", borderRadius: 16, padding: 24 }}>
+                <div style={{ marginBottom: 16 }}><div style={{ fontSize: 22, fontWeight: 800, color: cs.color, fontFamily: "'Playfair Display', serif" }}>{cs.name}</div><div style={{ fontSize: 12, color: COLORS.textDim, marginTop: 4 }}>{cs.highlight}</div></div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                  {cs.m.map(([v,l,t,s],i)=><HoverMetric key={i} value={v} label={l} tip={t} src={s} color={cs.color}/>)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 24 }}/>
+          <ChartCard title="WNBA + NWSL Combined Valuations ($B)" note="Wasserman/RBC project +$1.6B growth. 63% driven by attendance + viewership." source="Wasserman/RBC, 'New Economy' Part II, 2024">
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={valuationTimeline}>
+                <defs><linearGradient id="wnbaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={COLORS.accent} stopOpacity={0.3}/><stop offset="95%" stopColor={COLORS.accent} stopOpacity={0}/></linearGradient><linearGradient id="nwslGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={COLORS.pink} stopOpacity={0.3}/><stop offset="95%" stopColor={COLORS.pink} stopOpacity={0}/></linearGradient></defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border}/><XAxis dataKey="year" stroke={COLORS.textDim} fontSize={11}/><YAxis stroke={COLORS.textDim} fontSize={11} tickFormatter={v=>"$"+v+"B"}/>
+                <Tooltip content={<CustomTooltip/>}/>
+                <Area type="monotone" dataKey="wnba" stackId="1" stroke={COLORS.accent} fill="url(#wnbaGrad)" strokeWidth={2} name="WNBA ($B)"/>
+                <Area type="monotone" dataKey="nwsl" stackId="1" stroke={COLORS.pink} fill="url(#nwslGrad)" strokeWidth={2} name="NWSL ($B)"/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+        {/* CH7: THE PLAY */}
+        <div id="play">
+          <ChapterHeader number="07" title="Your Hackathon Play" subtitle="Everything above distilled into the framework you'll execute on March 5th."/>
+          <div style={{ background: "linear-gradient(135deg, " + COLORS.accent + "08, " + COLORS.pink + "08)", border: "1px solid " + COLORS.accent + "25", borderRadius: 16, padding: 24, marginBottom: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.accent, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>THE THREE-ACT FRAMEWORK</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              {[{act:"ACT 1",title:"Segment",desc:"Cluster fans into 3-5 archetypes using psychographic + behavioral data. Prove 'women's sports fans' is not a monolith.",color:COLORS.accent,icon:"🔍"},
+                {act:"ACT 2",title:"Quantify",desc:"Build a Commercial Value Index per segment. Show which segments generate disproportionate value invisible to 'revenue per fan.'",color:COLORS.pink,icon:"📊"},
+                {act:"ACT 3",title:"Activate",desc:"For each high-value segment, propose a specific partnership model with dollar figures. Answer: 'What do I do Monday morning?'",color:COLORS.yellow,icon:"🚀"}
+              ].map(a=>(
+                <div key={a.act} style={{ background: a.color + "10", borderRadius: 12, padding: 16, border: "1px solid " + a.color + "20" }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>{a.icon}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: a.color, letterSpacing: 2, fontFamily: "'JetBrains Mono', monospace" }}>{a.act}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.text, margin: "6px 0" }}>{a.title}</div>
+                  <div style={{ fontSize: 12, color: COLORS.textDim, lineHeight: 1.5 }}>{a.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <ChartCard title="Commercial Value Index Formula">
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <HoverCVI name="Spending Score" weight={0.30} color={COLORS.accent} desc="Tickets, merch, streaming, concessions" tip="Direct monetary value. Highest weight — most tangible commercial signal. Map any purchase/spend columns here."/>
+              <HoverCVI name="Brand Receptivity" weight={0.25} color={COLORS.pink} desc="Sponsor awareness, purchase intent, brand recall" tip="Measures sponsor responsiveness. Wasserman shows women's sports fans are 2.1x more receptive than men's sports fans."/>
+              <HoverCVI name="Engagement Depth" weight={0.20} color={COLORS.yellow} desc="Frequency, recency, multi-channel activity" tip="How embedded the fan is. Multi-channel (app + social + live) > single-channel. Angel City's '48-hour window' insight lives here."/>
+              <HoverCVI name="Social Amplification" weight={0.15} color={COLORS.blue} desc="Shares, follows, content creation, referrals" tip="The viral multiplier. Social Fans score highest, IsoFans lowest — which is why CVI captures value social metrics miss."/>
+              <HoverCVI name="Growth Potential" weight={0.10} color={COLORS.purple} desc="Age trajectory, tenure, avidity trend" tip="Younger + newer fans = higher lifetime value. Gen Z's 46% purchase lift + 77% trust = highest-ceiling segment."/>
+            </div>
+          </ChartCard>
+          <div style={{ background: COLORS.surface, border: "1px solid " + COLORS.border, borderRadius: 16, padding: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.yellow, marginBottom: 16, fontFamily: "'JetBrains Mono', monospace" }}>PRESENTATION FLOW (8 SLIDES, 5-7 MIN)</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+              <HoverSlide n={1} title="Thesis" time="15s" who="Tucker" tip="One-line thesis. State your conclusion FIRST. Judges remember whoever leads with the answer."/>
+              <HoverSlide n={2} title="The Problem" time="45s" who="Tucker" tip="66% feel misunderstood + monetization gap. SCQA framework: Situation-Complication-Question-Answer."/>
+              <HoverSlide n={3} title="Data + Method" time="30s" who="Khalid" tip="Brief. Dataset overview + clustering approach. Don't linger — methodology is a means, not the message."/>
+              <HoverSlide n={4} title="Finding #1" time="60s" who="Khalid" tip="Best cluster insight. Radar chart showing persona profiles. Name the segments with evocative names."/>
+              <HoverSlide n={5} title="Finding #2" time="60s" who="Khalid" tip="The undervalued segment. CVI bar chart. This is your 'wow' moment — make judges lean forward."/>
+              <HoverSlide n={6} title="Finding #3" time="60s" who="Tucker" tip="Partnership model. Connect segments to specific activation strategies. Concrete brand categories."/>
+              <HoverSlide n={7} title="Recs + $$$" time="45s" who="Tucker" tip="'What to do Monday morning.' Specific brand category + fan segment + dollar figure. No ambiguity."/>
+              <HoverSlide n={8} title="Q&A" time="—" who="Both" tip="Anticipate: 'How would you implement this?' and 'What surprised you most in the data?'"/>
+            </div>
+          </div>
+          <div style={{ marginTop: 40, textAlign: "center", padding: "40px 20px", background: "linear-gradient(135deg, " + COLORS.accent + "05, " + COLORS.pink + "05)", borderRadius: 20, border: "1px solid " + COLORS.accent + "15" }}>
+            <div style={{ fontSize: 13, color: COLORS.accent, fontWeight: 700, letterSpacing: 3, fontFamily: "'JetBrains Mono', monospace", marginBottom: 12 }}>SOL 1 · ALL SYSTEMS NOMINAL</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: COLORS.text, fontFamily: "'Playfair Display', serif", lineHeight: 1.3 }}>One story to tell.</div>
+            <div style={{ fontSize: 14, color: COLORS.textDim, marginTop: 16, fontStyle: "italic" }}>"I'm going to have to science the shit out of this."</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

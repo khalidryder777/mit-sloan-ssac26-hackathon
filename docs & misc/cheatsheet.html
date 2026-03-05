@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAC 2026 Hackathon Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #FF6B6B;
+    --teal: #4ECDC4;
+    --blue: #45B7D1;
+    --green: #96CEB4;
+    --yellow: #FFEAA7;
+    --purple: #DDA0DD;
+    --mint: #98D8C8;
+    --orange: #f0883e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 3px solid var(--accent);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--yellow), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+
+  /* ── Nav Tabs ── */
+  .nav {
+    display: flex;
+    gap: 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+  }
+  .nav button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .nav button:hover { color: var(--text); background: var(--bg3); }
+  .nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--bg3);
+  }
+
+  /* ── Main ── */
+  main { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Cards ── */
+  .grid { display: grid; gap: 1rem; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--teal); }
+  .card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card p, .card li { font-size: 0.82rem; color: var(--text-muted); }
+  .card ul { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.3rem; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-red { background: rgba(255,107,107,0.2); color: var(--accent); }
+  .badge-teal { background: rgba(78,205,196,0.2); color: var(--teal); }
+  .badge-blue { background: rgba(69,183,209,0.2); color: var(--blue); }
+  .badge-yellow { background: rgba(255,234,167,0.2); color: var(--yellow); }
+  .badge-green { background: rgba(150,206,180,0.2); color: var(--green); }
+  .badge-purple { background: rgba(221,160,221,0.2); color: var(--purple); }
+  .badge-orange { background: rgba(240,136,62,0.2); color: var(--orange); }
+
+  /* ── Code ── */
+  code {
+    background: var(--bg3);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    color: var(--teal);
+  }
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    margin: 0.75rem 0;
+    color: var(--green);
+  }
+  pre .comment { color: var(--text-muted); }
+  pre .keyword { color: var(--purple); }
+  pre .string { color: var(--yellow); }
+  pre .number { color: var(--accent); }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 0.5rem 0;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg3);
+    border-bottom: 2px solid var(--accent);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+  }
+  td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  tr:hover td { background: var(--bg3); color: var(--text); }
+
+  /* ── Section Headers ── */
+  .section-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-header:first-child { margin-top: 0; }
+
+  /* ── Formula Box ── */
+  .formula-box {
+    background: linear-gradient(135deg, rgba(255,107,107,0.08), rgba(78,205,196,0.08));
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    margin: 1rem 0;
+  }
+  .formula-box .formula {
+    font-size: 1rem;
+    font-family: 'Cascadia Code', monospace;
+    color: var(--text);
+    line-height: 2;
+  }
+  .formula-box .formula .w { color: var(--accent); font-weight: 700; }
+  .formula-box .formula .s { color: var(--teal); }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.75rem;
+    top: 1rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .timeline-item.done::before { background: var(--teal); }
+  .timeline-item .time {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .timeline-item .phase {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 0.15rem;
+  }
+  .timeline-item .detail {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ── Stat Cards ── */
+  .stat-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1rem 0; }
+  .stat {
+    flex: 1;
+    min-width: 120px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat .value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .stat .label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.35rem;
+  }
+
+  /* ── Persona Cards ── */
+  .persona {
+    border-left: 4px solid;
+    padding-left: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .persona h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .persona .traits {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .persona .key-stat {
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-top: 0.2rem;
+  }
+
+  /* ── Callout ── */
+  .callout {
+    background: rgba(255,107,107,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    border-radius: 0 8px 8px 0;
+    margin: 0.75rem 0;
+    font-size: 0.8rem;
+  }
+  .callout.teal {
+    background: rgba(78,205,196,0.08);
+    border-left-color: var(--teal);
+  }
+  .callout.yellow {
+    background: rgba(255,234,167,0.08);
+    border-left-color: var(--yellow);
+  }
+  .callout strong { color: var(--text); }
+
+  /* ── Collapsible ── */
+  details {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+  }
+  details[open] { border-color: var(--teal); }
+  summary {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  summary::before {
+    content: '\25B6';
+    font-size: 0.6rem;
+    transition: transform 0.2s;
+    color: var(--teal);
+  }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary::-webkit-details-marker { display: none; }
+  details .content { padding: 0 1rem 1rem; font-size: 0.82rem; color: var(--text-muted); }
+
+  /* ── Kbd ── */
+  kbd {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.72rem;
+    font-family: inherit;
+    color: var(--yellow);
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  /* ── Print ── */
+  @media print {
+    .header { position: static; }
+    .nav { display: none; }
+    .tab-content { display: block !important; page-break-inside: avoid; }
+    body { background: #fff; color: #000; font-size: 10pt; }
+    .card { border: 1px solid #ccc; }
+    pre { background: #f5f5f5; border: 1px solid #ddd; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .stat-row { flex-direction: column; }
+    .header h1 { font-size: 1.3rem; }
+    main { padding: 1rem; }
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SSAC 2026 HACKATHON CHEATSHEET</h1>
+  <div class="subtitle">Women's Sports Fandom | Khalid + Tucker | "I'm gonna cluster the sh*t out of this."</div>
+</div>
+
+<div class="nav" id="nav">
+  <button class="active" onclick="showTab('schedule')">Schedule</button>
+  <button onclick="showTab('pipeline')">Pipeline</button>
+  <button onclick="showTab('clustering')">Clustering</button>
+  <button onclick="showTab('cvi')">CVI</button>
+  <button onclick="showTab('domain')">Domain Intel</button>
+  <button onclick="showTab('presentation')">Presentation</button>
+  <button onclick="showTab('emergency')">Emergency</button>
+  <button onclick="showTab('formulas')">Formulas</button>
+</div>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: SCHEDULE                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-schedule">
+
+  <div class="section-header">Hackathon Day Timeline</div>
+
+  <div class="callout teal">
+    <strong>The 2:45 PM Rule:</strong> At 2:45 you STOP CODING. Period. An imperfect presentation delivered with confidence beats a perfect analysis that never leaves Jupyter.
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="time">9:00 - 9:15</div>
+      <div class="phase">Data Drop & Load</div>
+      <div class="detail">Save CSV to <code>data/</code>. Run <code>load_and_inspect()</code>. Check shape, types, missing. Tell Tucker the headline stats.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">9:15 - 10:00</div>
+      <div class="phase">EDA (Explore)</div>
+      <div class="detail">Run Sweetviz. Hunt for bimodal distributions, spending-social disconnect, Gen Z brand effect. Correlation matrix. Take notes.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">10:00 - 10:30</div>
+      <div class="phase">Preprocessing</div>
+      <div class="detail"><code>clean_data()</code> + <code>encode_for_clustering()</code>. Manual feature selection recommended &mdash; behavioral + commercial + psychographic features. Drop IDs, demographics.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">10:30 - 11:30</div>
+      <div class="phase">Clustering</div>
+      <div class="detail"><code>find_optimal_k()</code> &rarr; <code>run_kmeans()</code> &rarr; <code>cluster_stability_check()</code>. Target: silhouette &gt; 0.3, stability &gt; 0.7, k = 4-6.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">11:30 - 12:30</div>
+      <div class="phase">CVI + Analysis</div>
+      <div class="detail"><code>profile_clusters()</code> &rarr; <code>name_clusters()</code> &rarr; <code>compute_cvi()</code> &rarr; <code>segment_size_and_value()</code>. This produces the money slide.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">12:30 - 1:00</div>
+      <div class="phase">LUNCH</div>
+      <div class="detail">EAT. Your brain burns glucose. A hungry data scientist makes bad decisions.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">1:00 - 1:45</div>
+      <div class="phase">Visualization</div>
+      <div class="detail">Radar, UMAP scatter, size-vs-value bubble, CVI bar, heatmap. Export all to <code>outputs/</code>.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">1:45 - 2:45</div>
+      <div class="phase">Build Presentation</div>
+      <div class="detail">7 slides. Write speaker script. Tucker: hook + recs. Khalid: method + findings. 3 findings max.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time" style="color: var(--accent);">2:45 - STOP</div>
+      <div class="phase" style="color: var(--accent);">CLOSE THE IDE</div>
+      <div class="detail">Step away. Rehearse twice with timer. Deep breaths. Fix flow, not code.</div>
+    </div>
+  </div>
+
+  <div class="section-header">Pre-Decided Defaults (Override Only With Reason)</div>
+  <table>
+    <tr><th>Decision</th><th>Default</th><th>Override If</th></tr>
+    <tr><td>Algorithm</td><td><code>auto_cluster()</code></td><td>Strong domain reason for specific algo</td></tr>
+    <tr><td>k</td><td>Silhouette recommendation</td><td>Elbow clearly shows different k</td></tr>
+    <tr><td>CVI weights</td><td>30/25/20/15/10</td><td>Domain evidence for different weighting</td></tr>
+    <tr><td># of findings</td><td>3</td><td>4 only if all are genuinely compelling</td></tr>
+    <tr><td>Chart style</td><td>Dark theme</td><td>Never override. Dark always.</td></tr>
+    <tr><td>Stop coding</td><td>2:45 PM</td><td>Never. 2:45 always.</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: PIPELINE                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-pipeline">
+
+  <div class="section-header">Full Pipeline in 15 Lines</div>
+  <pre><span class="comment"># === THE WHOLE THING ===</span>
+<span class="keyword">from</span> preprocessing <span class="keyword">import</span> load_and_inspect, identify_column_types, clean_data, encode_for_clustering
+<span class="keyword">from</span> clustering <span class="keyword">import</span> find_optimal_k, run_kmeans, cluster_stability_check
+<span class="keyword">from</span> profiling <span class="keyword">import</span> profile_clusters, name_clusters, compute_cvi, segment_size_and_value
+<span class="keyword">from</span> visualization <span class="keyword">import</span> reduce_dimensions, plot_radar, plot_cluster_scatter, plot_segment_size_value
+
+df = load_and_inspect(<span class="string">'../data/FILENAME.csv'</span>)
+col_types = identify_column_types(df)
+df = clean_data(df, col_types)
+X, scaler, encoders, feature_names, cat_idx = encode_for_clustering(df, col_types)
+k_results = find_optimal_k(X)
+labels = run_kmeans(X, k=k_results[<span class="string">'recommended_k'</span>])
+profiles = profile_clusters(df, labels, col_types)
+names = name_clusters(profiles, k_results[<span class="string">'recommended_k'</span>])
+df = compute_cvi(df, labels, col_types, mapping=cvi_mapping)  <span class="comment"># fill cvi_mapping!</span>
+size_value = segment_size_and_value(df, labels)</pre>
+
+  <div class="section-header">Function Quick Reference</div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3><span class="badge badge-green">preprocessing.py</span></h3>
+      <table>
+        <tr><td><code>load_and_inspect(path)</code></td><td>Load CSV/Excel, print summary</td></tr>
+        <tr><td><code>identify_column_types(df)</code></td><td>Auto-classify columns</td></tr>
+        <tr><td><code>clean_data(df, col_types)</code></td><td>Impute, drop dupes, drop &gt;50% missing</td></tr>
+        <tr><td><code>encode_for_clustering(df, col_types)</code></td><td>Scale + encode &rarr; feature matrix</td></tr>
+        <tr><td><code>create_feature_matrix(df, features)</code></td><td>Manual feature selection</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">clustering.py</span></h3>
+      <table>
+        <tr><td><code>find_optimal_k(X)</code></td><td>Test k=2..8, plot, recommend</td></tr>
+        <tr><td><code>run_kmeans(X, k)</code></td><td>Standard K-Means</td></tr>
+        <tr><td><code>run_kprototypes(X, k, cat_idx)</code></td><td>Mixed data clustering</td></tr>
+        <tr><td><code>run_hdbscan_clustering(X)</code></td><td>Density-based, auto k</td></tr>
+        <tr><td><code>cluster_stability_check(X, k)</code></td><td>10-run ARI stability</td></tr>
+        <tr><td><code>auto_cluster(X, col_types, cat_idx)</code></td><td>Auto-select algorithm + k</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-red">profiling.py</span></h3>
+      <table>
+        <tr><td><code>profile_clusters(df, labels, col_types)</code></td><td>Mean/median/mode per cluster</td></tr>
+        <tr><td><code>name_clusters(profiles, k)</code></td><td>Auto-generate persona names</td></tr>
+        <tr><td><code>compute_cvi(df, labels, col_types, mapping)</code></td><td>Commercial Value Index</td></tr>
+        <tr><td><code>segment_size_and_value(df, labels)</code></td><td>Size vs. value table</td></tr>
+        <tr><td><code>generate_cluster_comparison(df, labels, col_types)</code></td><td>Index values (100 = avg)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-purple">visualization.py</span></h3>
+      <table>
+        <tr><td><code>plot_radar(profiles, features, names)</code></td><td>Spider chart per persona</td></tr>
+        <tr><td><code>plot_cluster_scatter(X_2d, labels, names)</code></td><td>UMAP/PCA scatter</td></tr>
+        <tr><td><code>plot_cvi_bar(summary, names)</code></td><td>CVI rankings bar</td></tr>
+        <tr><td><code>plot_segment_size_value(sv_df, names)</code></td><td>Bubble chart (money slide)</td></tr>
+        <tr><td><code>plot_cluster_heatmap(comparison, names)</code></td><td>Over/under-indexing grid</td></tr>
+        <tr><td><code>reduce_dimensions(X, 'umap')</code></td><td>Reduce to 2D</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-header">Critical Hackathon-Day Cell: CVI Column Mapping</div>
+  <pre><span class="comment"># FILL THIS IN when you see the actual column names!</span>
+cvi_mapping = {
+    <span class="string">'spending_score'</span>:        [<span class="string">'TICKET_COL'</span>, <span class="string">'MERCH_COL'</span>],
+    <span class="string">'brand_receptivity'</span>:     [<span class="string">'SPONSOR_COL'</span>, <span class="string">'PURCHASE_INTENT_COL'</span>],
+    <span class="string">'engagement_depth'</span>:      [<span class="string">'ATTENDANCE_COL'</span>, <span class="string">'STREAMING_COL'</span>],
+    <span class="string">'social_amplification'</span>:  [<span class="string">'SOCIAL_COL'</span>, <span class="string">'SHARING_COL'</span>],
+    <span class="string">'growth_potential'</span>:      [<span class="string">'AD_RECEPTIVITY_COL'</span>, <span class="string">'RECOMMEND_COL'</span>],
+}</pre>
+  <div class="callout yellow">
+    <strong>Read the data dictionary FIRST.</strong> Multiple columns can map to one sub-score (averaged). Leave empty if no match. For growth: consider inverting age (younger = higher).
+  </div>
+
+  <div class="section-header">Feature Selection Strategy</div>
+  <div class="grid grid-3">
+    <div class="card" style="border-left: 3px solid var(--teal);">
+      <h3>Include</h3>
+      <ul>
+        <li>Behavioral: attendance, spend, streaming</li>
+        <li>Commercial: brand affinity, ad receptivity</li>
+        <li>Psychographic: values, intensity, social</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h3>Exclude</h3>
+      <ul>
+        <li>IDs (respondent_id, etc.)</li>
+        <li>Demographics (age, gender, region)</li>
+        <li>Near-zero-variance columns</li>
+        <li>Highly correlated pairs (r &gt; 0.95)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h3>Why Exclude Demographics?</h3>
+      <p>Including age/gender gives you boring demographic clusters. Excluding them gives you <em>behavioral</em> fan types. If demographics correlate after clustering, that validates the finding without tautology.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: CLUSTERING                                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-clustering">
+
+  <div class="section-header">Algorithm Decision Tree</div>
+  <div class="card" style="text-align:center; padding: 1.5rem;">
+    <pre style="text-align:left; border:none; margin:0; background:none;">
+Data has categorical columns?
+  |
+  YES ──► K-Prototypes (mixed numeric + categorical)
+  |
+  NO ──► All numeric?
+           |
+           YES ──► Features &lt; 15? ──► K-Means
+           |                    ──► PCA(80%) then K-Means
+           |
+           NO ──► All categorical? ──► K-Modes
+                                  ──► Percentile Segmentation (fallback)</pre>
+  </div>
+
+  <div class="section-header">Algorithm Comparison</div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3><span class="badge badge-teal">K-Means</span> The Workhorse</h3>
+      <ul>
+        <li><strong>Use when:</strong> Numeric data, roughly spherical clusters</li>
+        <li><strong>Pros:</strong> Fast, deterministic, easy to explain</li>
+        <li><strong>Cons:</strong> Must pick k, assumes spherical, outlier-sensitive</li>
+        <li><strong>Key param:</strong> <code>n_init=10, random_state=42</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">K-Prototypes</span> The Hybrid</h3>
+      <ul>
+        <li><strong>Use when:</strong> Mixed numeric + categorical data</li>
+        <li><strong>Pros:</strong> Handles both types natively</li>
+        <li><strong>Cons:</strong> Slower, must specify <code>categorical_indices</code></li>
+        <li><strong>Key param:</strong> <code>init='Huang', n_init=5</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-purple">HDBSCAN</span> The Rebel</h3>
+      <ul>
+        <li><strong>Use when:</strong> Unknown k, non-spherical clusters, want outlier detection</li>
+        <li><strong>Pros:</strong> Auto k, finds weird shapes, flags noise</li>
+        <li><strong>Cons:</strong> Sometimes everything is noise, hard to tune</li>
+        <li><strong>Key param:</strong> <code>min_cluster_size=n//50</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-orange">Percentile</span> The Emergency Chute</h3>
+      <ul>
+        <li><strong>Use when:</strong> Nothing else works, running out of time</li>
+        <li><strong>How:</strong> Top 2-3 features &rarr; tertiles &rarr; cross-tab &rarr; merge</li>
+        <li><strong>Pros:</strong> Always works, always interpretable</li>
+        <li><strong>Cons:</strong> Not sophisticated, but beats nothing</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-header">Validation: Are Your Clusters Real?</div>
+  <div class="grid grid-3">
+    <div class="card" style="text-align:center;">
+      <h3>Silhouette Score</h3>
+      <div style="font-size:2rem; font-weight:800; color:var(--teal);">&gt; 0.3</div>
+      <p style="margin-top:0.5rem;">Range: [-1, +1]. Higher = more distinct.<br>
+      &gt; 0.5 good &bull; &gt; 0.7 excellent &bull; &lt; 0.25 suspicious</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <h3>Stability (ARI)</h3>
+      <div style="font-size:2rem; font-weight:800; color:var(--green);">&gt; 0.7</div>
+      <p style="margin-top:0.5rem;">10 runs, different seeds.<br>
+      &gt; 0.9 rock solid &bull; &gt; 0.7 good enough &bull; &lt; 0.7 sketchy</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <h3>Interpretability</h3>
+      <div style="font-size:2rem; font-weight:800; color:var(--yellow);">Can you name it?</div>
+      <p style="margin-top:0.5rem;">If you can describe each cluster in one sentence a non-technical person gets &rarr; it's real.</p>
+    </div>
+  </div>
+
+  <div class="section-header">Scaling Cheat Sheet</div>
+  <table>
+    <tr><th>Method</th><th>Formula</th><th>Use For</th></tr>
+    <tr><td><strong>StandardScaler</strong> (z-score)</td><td><code>(x - mean) / std</code></td><td>Before K-Means, PCA, UMAP. Makes all features equal footing.</td></tr>
+    <tr><td><strong>Min-Max</strong></td><td><code>(x - min) / (max - min)</code></td><td>CVI sub-scores. Output in [0, 1] for human-readable composites.</td></tr>
+    <tr><td><strong>None needed</strong></td><td>&mdash;</td><td>K-Modes, tree-based methods, raw categorical data.</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: CVI                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-cvi">
+
+  <div class="section-header">Commercial Value Index</div>
+
+  <div class="formula-box">
+    <div class="formula">
+      CVI = <span class="w">0.30</span><span class="s">(Spending)</span>
+      + <span class="w">0.25</span><span class="s">(Brand Receptivity)</span>
+      + <span class="w">0.20</span><span class="s">(Engagement)</span>
+      + <span class="w">0.15</span><span class="s">(Social Amplification)</span>
+      + <span class="w">0.10</span><span class="s">(Growth Potential)</span>
+    </div>
+    <p style="margin-top:0.75rem; font-size:0.75rem; color:var(--text-muted);">Each sub-score = average of mapped columns, min-max normalized to [0, 1]</p>
+  </div>
+
+  <div class="section-header">Why These Weights?</div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3><span style="color:var(--accent); font-size:1.2rem; font-weight:800;">0.30</span> Spending Score</h3>
+      <p>Direct monetizable signal. Ticket spend, merch spend. Money talks &mdash; current spending is the best predictor of future spending.</p>
+    </div>
+    <div class="card">
+      <h3><span style="color:var(--teal); font-size:1.2rem; font-weight:800;">0.25</span> Brand Receptivity</h3>
+      <p>Sponsor awareness, purchase intent, brand affinity. This is what sponsors are literally buying. Can they reach this fan?</p>
+    </div>
+    <div class="card">
+      <h3><span style="color:var(--blue); font-size:1.2rem; font-weight:800;">0.20</span> Engagement Depth</h3>
+      <p>Games attended, streaming hours, app usage, fandom intensity. Deep engagement = retention = lifetime value.</p>
+    </div>
+    <div class="card">
+      <h3><span style="color:var(--green); font-size:1.2rem; font-weight:800;">0.15</span> Social Amplification</h3>
+      <p>Shares, posts, recommendations. A fan who amplifies is a walking billboard &mdash; worth more than their own spending.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1rem;">
+    <h3><span style="color:var(--yellow); font-size:1.2rem; font-weight:800;">0.10</span> Growth Potential</h3>
+    <p>Youngest fans, newest fans, highest ad receptivity. Low weight because it's speculative, but it represents future value. Consider inverting age and tenure.</p>
+  </div>
+
+  <div class="section-header">Size vs. Value Matrix (The Money Slide)</div>
+  <div class="grid grid-2">
+    <div class="card" style="border-top: 3px solid var(--teal);">
+      <h3>Above the Diagonal</h3>
+      <p style="font-size:0.85rem; color:var(--teal); font-weight:600;">Punching Above Weight</p>
+      <p>Small % of fans, big % of value. This is your goldmine. Protect, reward, grow. <strong>The Silent Superfan lives here.</strong></p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--accent);">
+      <h3>Below the Diagonal</h3>
+      <p style="font-size:0.85rem; color:var(--accent); font-weight:600;">Underperforming</p>
+      <p>Big % of fans, small % of value. Growth opportunity &mdash; what's blocking them? Or: deprioritize if they're unactivatable.</p>
+    </div>
+  </div>
+
+  <div class="callout teal" style="margin-top:1rem;">
+    <strong>The Headline:</strong> "X% of fans generate Y% of commercial value, and nobody is marketing to them because they're invisible on social media." &mdash; This is the insight that wins hackathons.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: DOMAIN                                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-domain">
+
+  <div class="section-header">Key Stats (Have These Memorized)</div>
+  <div class="stat-row">
+    <div class="stat"><div class="value" style="color:var(--accent);">$2.5B</div><div class="label">Monetization Gap (McKinsey)</div></div>
+    <div class="stat"><div class="value" style="color:var(--teal);">84%</div><div class="label">Fans = Decision-Makers</div></div>
+    <div class="stat"><div class="value" style="color:var(--yellow);">286%</div><div class="label">WNBA Sponsor ROI</div></div>
+    <div class="stat"><div class="value" style="color:var(--blue);">46%</div><div class="label">Gen Z Purchase Lift</div></div>
+    <div class="stat"><div class="value" style="color:var(--green);">66%</div><div class="label">Feel Misunderstood by Brands</div></div>
+  </div>
+
+  <div class="section-header">Fan Archetypes (Wasserman)</div>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3><span class="badge badge-red">18-21%</span> IsoFan</h3>
+      <p>High engagement, high spend, LOW social visibility. Consumes alone (streaming, solo attendance). Most commercially valuable per capita but invisible to social metrics. <strong>The "dark matter" of fandom.</strong></p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-teal">25-28%</span> DuoFan</h3>
+      <p>Shares fandom with 1 person. Values-driven. Moderate social, moderate spend. Responds to cause-based messaging. High loyalty once activated.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-blue">54-59%</span> SocialFan</h3>
+      <p>Group experience oriented. High social engagement. The fans everyone SEES but who aren't necessarily the highest individual spenders. High amplification value.</p>
+    </div>
+  </div>
+
+  <div class="section-header">Predicted 5-Segment Model</div>
+
+  <div class="persona" style="border-color: var(--accent);">
+    <h4 style="color:var(--accent);">The Silent Superfan <span class="badge badge-red">~19%</span></h4>
+    <div class="traits">Highest spend ($648 tickets/yr) &bull; Lowest social (1.6/5) &bull; High intensity (4.6/5)</div>
+    <div class="key-stat" style="color:var(--accent);">19% of fans &rarr; ~25% of commercial value &rarr; 1.3x efficiency</div>
+  </div>
+  <div class="persona" style="border-color: var(--teal);">
+    <h4 style="color:var(--teal);">The Social Spectator <span class="badge badge-teal">~27%</span></h4>
+    <div class="traits">Largest segment &bull; High social (4.2/5) &bull; Group attendance &bull; Moderate spend</div>
+    <div class="key-stat" style="color:var(--teal);">The fans everyone markets to &mdash; but efficiency is only ~0.9x</div>
+  </div>
+  <div class="persona" style="border-color: var(--blue);">
+    <h4 style="color:var(--blue);">The Values Advocate <span class="badge badge-blue">~22%</span></h4>
+    <div class="traits">Highest values alignment (4.8/5) &bull; Highest cause importance (4.9/5) &bull; Moderate spend</div>
+    <div class="key-stat" style="color:var(--blue);">Responds to cause-based sponsorship &bull; Will pay premium for aligned brands</div>
+  </div>
+  <div class="persona" style="border-color: var(--yellow);">
+    <h4 style="color:var(--yellow);">The Next-Gen Evangelist <span class="badge badge-yellow">~18%</span></h4>
+    <div class="traits">Youngest (mean ~23) &bull; Highest brand affinity (4.2/5) &bull; Highest ad receptivity (4.1/5)</div>
+    <div class="key-stat" style="color:var(--yellow);">The future &bull; Streaming-heavy &bull; Capture them before competitors do</div>
+  </div>
+  <div class="persona" style="border-color: var(--text-muted);">
+    <h4>The Casual Curious <span class="badge badge-orange">~14%</span></h4>
+    <div class="traits">Lowest intensity (2.3/5) &bull; Newest fans &bull; Lowest spend</div>
+    <div class="key-stat">Most growth room &bull; Right on-ramp could convert them to any other segment</div>
+  </div>
+
+  <div class="section-header">What NOT to Say</div>
+  <div class="callout">
+    <ul style="padding-left:1rem;">
+      <li>Don't call fans "consumers" &mdash; use <strong>"fans"</strong> or "supporters"</li>
+      <li>Don't frame women's sports as "catching up to" men's sports</li>
+      <li>Don't treat "the female fan" as a monolith (your whole project proves they're not)</li>
+      <li>Don't undervalue low-CVI fans &mdash; "low value" might mean "not yet activated"</li>
+    </ul>
+  </div>
+
+  <div class="section-header">Jargon Translator</div>
+  <table>
+    <tr><th>They Say</th><th>They Mean</th></tr>
+    <tr><td>Fan avidity</td><td>How hardcore a fan is</td></tr>
+    <tr><td>Commercial activation</td><td>Getting fans to buy stuff</td></tr>
+    <tr><td>Brand lift</td><td>Did sponsorship make people like the brand more</td></tr>
+    <tr><td>Monetization gap</td><td>Money being left on the table</td></tr>
+    <tr><td>Psychographic segmentation</td><td>Grouping by attitudes/values, not demographics</td></tr>
+    <tr><td>Over-indexes</td><td>This group does this MORE than average</td></tr>
+    <tr><td>Iso-fan</td><td>High-value fan invisible to traditional metrics</td></tr>
+    <tr><td>LTV (Lifetime Value)</td><td>Total $ a fan will spend over their entire fandom</td></tr>
+    <tr><td>TAM</td><td>Total addressable market (how big could this be)</td></tr>
+    <tr><td>First-party data</td><td>Data collected directly from fans (not bought)</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: PRESENTATION                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-presentation">
+
+  <div class="section-header">Slide Structure (3 min)</div>
+  <div class="grid grid-2">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h3>Tucker's Slides</h3>
+      <table>
+        <tr><td><strong>Slide 1</strong> (15s)</td><td>Hook: "$2.5B opportunity, but brands market to the wrong fans"</td></tr>
+        <tr><td><strong>Slide 5</strong> (30s)</td><td>Money Slide: size vs. value bubble. "19% of fans, 25% of value."</td></tr>
+        <tr><td><strong>Slide 6</strong> (30s)</td><td>3 actionable recommendations</td></tr>
+        <tr><td><strong>Slide 7</strong> (15s)</td><td>Close: "Stop marketing to visible fans. Start marketing to valuable ones."</td></tr>
+      </table>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--teal);">
+      <h3>Khalid's Slides</h3>
+      <table>
+        <tr><td><strong>Slide 2</strong> (20s)</td><td>Method: K-Means, 16 features, silhouette 0.37, stability 0.87. Show UMAP.</td></tr>
+        <tr><td><strong>Slide 3</strong> (30s)</td><td>5 personas via radar chart. Quick callout of each shape.</td></tr>
+        <tr><td><strong>Slide 4</strong> (20s)</td><td>CVI framework: weighted composite formula. Clean, simple.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-header">The Insight Framework (Every Finding Needs All 4)</div>
+  <div class="grid grid-2">
+    <div class="stat-row" style="margin:0;">
+      <div class="stat" style="flex:1; border-top: 3px solid var(--accent);">
+        <div class="label" style="font-size:0.75rem; font-weight:700; color:var(--accent);">1. INSIGHT</div>
+        <div class="label" style="margin-top:0.3rem;">One sentence headline.</div>
+      </div>
+      <div class="stat" style="flex:1; border-top: 3px solid var(--teal);">
+        <div class="label" style="font-size:0.75rem; font-weight:700; color:var(--teal);">2. EVIDENCE</div>
+        <div class="label" style="margin-top:0.3rem;">One chart + one stat.</div>
+      </div>
+      <div class="stat" style="flex:1; border-top: 3px solid var(--blue);">
+        <div class="label" style="font-size:0.75rem; font-weight:700; color:var(--blue);">3. ACTIVATION</div>
+        <div class="label" style="margin-top:0.3rem;">What to do about it.</div>
+      </div>
+      <div class="stat" style="flex:1; border-top: 3px solid var(--yellow);">
+        <div class="label" style="font-size:0.75rem; font-weight:700; color:var(--yellow);">4. DOLLAR FIGURE</div>
+        <div class="label" style="margin-top:0.3rem;">Make it concrete $$.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">3 Recommendation Templates</div>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>Silent Superfan Strategy</h3>
+      <ul>
+        <li>Premium loyalty programs</li>
+        <li>Exclusive in-venue experiences</li>
+        <li>Direct CRM (email, SMS) NOT social</li>
+        <li>They respond to exclusivity, not virality</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Next-Gen Evangelist Strategy</h3>
+      <ul>
+        <li>Streaming-first partnerships</li>
+        <li>Authentic brand integrations (not banner ads)</li>
+        <li>Athlete influencer collabs</li>
+        <li>They're brand-receptive NOW &mdash; capture early</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Values Advocate Strategy</h3>
+      <ul>
+        <li>Cause-based sponsorship activations</li>
+        <li>Co-branded impact campaigns</li>
+        <li>They'll pay premium for aligned brands</li>
+        <li>286% ROI lives in this segment</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-header">Delivery Tips</div>
+  <div class="grid grid-2">
+    <div class="callout teal">
+      <strong>Lead with the punchline.</strong> Don't build up to your finding. START with it: "We found that 19% of fans generate 25% of value." Then show evidence. Then recommend.
+    </div>
+    <div class="callout yellow">
+      <strong>Pause after key numbers.</strong> "$2.5 billion in untapped value." [beat] "Let me show you where it is." Silence is your most powerful punctuation.
+    </div>
+  </div>
+
+  <div class="section-header">Slide Titles: Tell the Story</div>
+  <table>
+    <tr><th>Bad (Description)</th><th>Good (Insight)</th></tr>
+    <tr><td>"Introduction"</td><td>"The $2.5B Question: Who Are Women's Sports Fans, Really?"</td></tr>
+    <tr><td>"Clustering Results"</td><td>"Five Distinct Fan Segments, Hidden in Plain Sight"</td></tr>
+    <tr><td>"CVI Analysis"</td><td>"The Silent Superfan: 19% of Fans, 25% of Value"</td></tr>
+    <tr><td>"Recommendations"</td><td>"Three Actions to Unlock the Invisible Fan Economy"</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: EMERGENCY                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-emergency">
+
+  <div class="section-header">When Things Go Wrong (And They Will)</div>
+
+  <details open>
+    <summary>"The data makes no sense"</summary>
+    <div class="content">
+      <ol>
+        <li>Run <code>df.describe(include='all')</code> &mdash; ranges reveal meaning (1-5 = Likert, 0/1 = binary)</li>
+        <li>Check <code>df.nunique()</code> &mdash; 2 uniques = binary, 5-7 = Likert, 1 = useless</li>
+        <li>Ask the organizers: "What's column Q14?" is a legitimate question</li>
+        <li>Nuclear: treat everything numeric, standardize, K-Means it. You'll find patterns.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>"Clustering gives random garbage"</summary>
+    <div class="content">
+      <ol>
+        <li><strong>Reduce features.</strong> PCA to 5-10 components, then cluster.</li>
+        <li><strong>Try different algo.</strong> K-Means failing? Hierarchical. Everything? HDBSCAN.</li>
+        <li><strong>Check outliers.</strong> A few extreme values can eat your centroids.</li>
+        <li><strong>Nuclear:</strong> percentile segmentation on top 3 highest-variance columns.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>"My code crashed mid-pipeline"</summary>
+    <div class="content">
+      <ol>
+        <li>Notebooks are re-runnable from any cell. Data saves at each stage.</li>
+        <li>Common crashes: <code>NaN</code> survived cleaning &rarr; <code>df.isnull().sum()</code></li>
+        <li>Mixed types in a column &rarr; <code>df[col].apply(type).value_counts()</code></li>
+        <li>Memory error &rarr; <code>df.sample(10000)</code> to reduce dataset</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>"Streamlit won't launch"</summary>
+    <div class="content">
+      <ol>
+        <li><code>streamlit run app/dashboard.py</code> from PROJECT ROOT</li>
+        <li>Port busy? <code>--server.port 8502</code></li>
+        <li>Crashes on load? Check <code>data/clustered_data.csv</code> exists.</li>
+        <li><strong>Nuclear: skip Streamlit.</strong> Charts are PNGs in <code>outputs/</code>. Use those in slides.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>"UMAP won't install / crashes"</summary>
+    <div class="content">
+      <p>Use PCA instead: <code>reduce_dimensions(X, method='pca')</code>. Less pretty, equally functional. The pipeline handles this fallback automatically.</p>
+    </div>
+  </details>
+
+  <div class="section-header">Time-Based Emergency Protocols</div>
+  <table>
+    <tr><th>If It's...</th><th>And You Have...</th><th>Do This</th></tr>
+    <tr>
+      <td style="color:var(--yellow); font-weight:700;">12:00 PM</td>
+      <td>No clusters</td>
+      <td>Skip to percentile segmentation. 30 min max. Move to CVI.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--orange); font-weight:700;">1:30 PM</td>
+      <td>No presentation</td>
+      <td>STOP all analysis. Open slides. Use charts you have. 3 findings, 4 words per bullet.</td>
+    </tr>
+    <tr>
+      <td style="color:var(--accent); font-weight:700;">2:30 PM</td>
+      <td>Nothing</td>
+      <td>Descriptive analysis + hypotheses. "3 hypotheses about fan segments that warrant further investigation."</td>
+    </tr>
+    <tr>
+      <td style="color:var(--accent); font-weight:700;">3:00 PM</td>
+      <td>Still debugging</td>
+      <td><strong>Walk away from the computer.</strong> Present what you have. Confidence beats perfection.</td>
+    </tr>
+  </table>
+
+  <div class="section-header">Q&A Cheat Sheet</div>
+  <details>
+    <summary>"Why K-Means and not another algorithm?"</summary>
+    <div class="content">
+      <p>"Best silhouette score, most interpretable clusters. Stability check: 10 runs, ARI of 0.87. These clusters are robust, not artifacts."</p>
+      <p><strong>If they push:</strong> "HDBSCAN shines on spatial data with noise; this is clean survey data with ordinal scales. K-Means is the right tool."</p>
+    </div>
+  </details>
+  <details>
+    <summary>"How did you choose k?"</summary>
+    <div class="content">
+      <p>"Silhouette peaked at k=5, Calinski-Harabasz confirmed, elbow showed diminishing returns. But the strongest argument is interpretability &mdash; at k=4 we lost a distinction, at k=6 one cluster was too small."</p>
+    </div>
+  </details>
+  <details>
+    <summary>"Why those CVI weights?"</summary>
+    <div class="content">
+      <p>"Spending highest at 0.30 because it's the most direct measure. We ran sensitivity &mdash; as long as spending &gt; 0.20 and social &lt; 0.25, rank order doesn't change. Finding is robust."</p>
+    </div>
+  </details>
+  <details>
+    <summary>"Aren't you just finding demographic clusters?"</summary>
+    <div class="content">
+      <p>"No &mdash; by design. We excluded age, gender, and region from clustering features. Clusters are defined by behavior and psychographics. Demographics correlate AFTER &mdash; that's validation, not tautology."</p>
+    </div>
+  </details>
+  <details>
+    <summary>"What would you do with more time?"</summary>
+    <div class="content">
+      <p>"Three things: validate segments with a follow-up survey, A/B test Silent Superfan outreach (CRM vs. social), track segment migration over time to understand conversion triggers."</p>
+    </div>
+  </details>
+  <details>
+    <summary>Don't know the answer?</summary>
+    <div class="content">
+      <p><strong>"That's a great question and exactly the direction our next analysis would take."</strong> Then move on. Never make up a number.</p>
+    </div>
+  </details>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB: FORMULAS                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-formulas">
+
+  <div class="section-header">Quick-Reference Formulas</div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Silhouette Score</h3>
+      <pre style="background:var(--bg);">s(i) = (b(i) - a(i)) / max(a(i), b(i))
+
+a(i) = mean distance to same cluster
+b(i) = mean distance to nearest other cluster
+Range: [-1, +1], higher = better</pre>
+    </div>
+    <div class="card">
+      <h3>Calinski-Harabasz</h3>
+      <pre style="background:var(--bg);">CH = [SS_B / (k-1)] / [SS_W / (n-k)]
+
+SS_B = between-cluster sum of squares
+SS_W = within-cluster sum of squares
+Higher = better (compare across k values)</pre>
+    </div>
+    <div class="card">
+      <h3>Commercial Value Index</h3>
+      <pre style="background:var(--bg);">CVI = 0.30(S) + 0.25(B) + 0.20(E) + 0.15(A) + 0.10(G)
+
+S = Spending Score       (ticket + merch)
+B = Brand Receptivity    (awareness + intent)
+E = Engagement Depth     (attendance + streaming)
+A = Social Amplification (shares + recommends)
+G = Growth Potential     (youth + newness)
+
+Each sub-score: min-max normalized to [0, 1]</pre>
+    </div>
+    <div class="card">
+      <h3>Index Value</h3>
+      <pre style="background:var(--bg);">Index = (cluster_mean / population_mean) x 100
+
+  > 120 = over-indexes (stands out)
+  < 80  = under-indexes (below average)
+  80-120 = meh, average</pre>
+    </div>
+    <div class="card">
+      <h3>Adjusted Rand Index (Stability)</h3>
+      <pre style="background:var(--bg);">ARI in [-1, 1]
+
+1   = perfect agreement between runs
+0   = random (no better than chance)
+< 0 = worse than random (yikes)
+
+Usage: 10 runs, compare all pairs,
+       take mean ARI. Want > 0.7.</pre>
+    </div>
+    <div class="card">
+      <h3>Value Efficiency</h3>
+      <pre style="background:var(--bg);">Efficiency = pct_of_value / pct_of_size
+
+  > 1.0 = punching above weight
+  = 1.0 = fair share
+  < 1.0 = underperforming
+
+Example: 19% of fans, 25% of value
+  => 25/19 = 1.32x efficiency</pre>
+    </div>
+  </div>
+
+  <div class="section-header">Statistics Cheat Sheet</div>
+  <table>
+    <tr><th>Concept</th><th>What It Is</th><th>When It Matters</th></tr>
+    <tr><td><strong>Mean vs Median</strong></td><td>Mean = average, Median = middle value</td><td>Median is more honest for skewed data (income, spend). Use mean for profiling (stakeholders expect it).</td></tr>
+    <tr><td><strong>Std Deviation</strong></td><td>How spread out the data is</td><td>Low std in a cluster = tight segment (good). High std = loose grouping.</td></tr>
+    <tr><td><strong>Correlation (r)</strong></td><td>Linear relationship, -1 to +1</td><td>r > 0.7 = strong, r < 0.3 = weak. Correlation != causation. Check for spend-social disconnect.</td></tr>
+    <tr><td><strong>Variance Explained</strong></td><td>How much info PCA kept</td><td>"80% variance in 5 components" = squished 30 features into 5, lost only 20%. Great trade.</td></tr>
+    <tr><td><strong>p-value</strong></td><td>Prob result is due to chance</td><td>< 0.05 = "unlikely chance." Doesn't mean important or large. Focus on effect sizes instead.</td></tr>
+  </table>
+
+  <div class="section-header">Encoding Quick Reference</div>
+  <table>
+    <tr><th>Method</th><th>When to Use</th><th>Watch Out</th></tr>
+    <tr><td><strong>One-Hot</strong></td><td>Low-cardinality categoricals (&lt; 10 values)</td><td>Explodes feature space for high-cardinality</td></tr>
+    <tr><td><strong>Label Encode</strong></td><td>Ordinal data (Low/Med/High, Likert scales)</td><td>Only when there's natural order! Don't encode Red=1, Blue=2</td></tr>
+    <tr><td><strong>None (pass as-is)</strong></td><td>K-Prototypes / K-Modes</td><td>Must specify <code>categorical_indices</code> correctly</td></tr>
+    <tr><td><strong>StandardScaler</strong></td><td>All numeric before K-Means/PCA/UMAP</td><td>Not needed for tree methods or K-Modes</td></tr>
+  </table>
+</div>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.7rem; border-top:1px solid var(--border);">
+  "Every problem has a solution. Some of them are just really, really stupid solutions. But they work." &mdash; Mark Watney (paraphrased)
+  <br>
+  Built the night before. Designed to survive the morning after. Go get 'em.
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  // Find the button whose onclick contains this id
+  document.querySelectorAll('.nav button').forEach(b => {
+    if (b.getAttribute('onclick') === "showTab('" + id + "')") {
+      b.classList.add('active');
+    }
+  });
+  window.scrollTo(0, 0);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  const tabs = ['schedule', 'pipeline', 'clustering', 'cvi', 'domain', 'presentation', 'emergency', 'formulas'];
+  const num = parseInt(e.key);
+  if (num >= 1 && num <= tabs.length && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    const activeEl = document.activeElement;
+    if (activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA') {
+      showTab(tabs[num - 1]);
+    }
+  }
+});
+</script>
+
+</body>
+</html>

@@ -4,6 +4,8 @@ scikit-learn
 matplotlib
 seaborn
 plotly
+kaleido
+streamlit
 ydata-profiling
 sweetviz
 kmodes
@@ -13,4 +15,5 @@ hdbscan
 yellowbrick
 textblob
 scipy
-streamlit
+openpyxl
+Jinja2

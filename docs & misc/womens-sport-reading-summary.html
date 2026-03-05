@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Women's Sports Fandom Survival Guide — MIT SSAC Hackathon</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; }
+    .report-tab {
+      padding: 8px 12px; border: 1px solid #333; background: #111;
+      color: #888; cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; transition: all 0.2s; border-radius: 2px; white-space: nowrap;
+    }
+    .report-tab:hover { border-color: #ff6b35; color: #ff6b35; }
+    .report-tab.active { background: #ff6b35; color: #000; border-color: #ff6b35; font-weight: 700; }
+    .insight-card {
+      border: 1px solid #222; padding: 16px; margin: 8px 0; cursor: pointer;
+      transition: all 0.2s; border-radius: 3px; background: #111;
+    }
+    .insight-card:hover { border-color: #ff6b35; background: #151010; }
+    .insight-card.expanded { border-color: #ff6b35; background: #1a0f0a; }
+    .stat-badge {
+      display: inline-block; background: #ff6b35; color: #000;
+      padding: 3px 10px; font-weight: 700; font-size: 18px;
+      border-radius: 2px; font-family: 'Space Grotesk', sans-serif;
+    }
+    .section-label {
+      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+      color: #ff6b35; margin-bottom: 8px; font-weight: 500;
+    }
+    .ammo-box {
+      border-left: 3px solid #ff6b35; padding: 16px 20px;
+      background: #111; margin: 16px 0; border-radius: 0 3px 3px 0;
+    }
+    .gotcha-box {
+      border-left: 3px solid #ff3333; padding: 16px 20px;
+      background: #1a0a0a; margin: 16px 0; border-radius: 0 3px 3px 0;
+    }
+    .quiz-input {
+      background: #111; border: 1px solid #333; color: #e0e0e0;
+      padding: 8px 12px; font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; width: 100%; border-radius: 2px; margin-top: 6px;
+    }
+    .quiz-input:focus { outline: none; border-color: #ff6b35; }
+    .mode-toggle {
+      padding: 10px 20px; border: 1px solid #333; background: transparent;
+      color: #e0e0e0; cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; transition: all 0.2s; border-radius: 2px;
+    }
+    .mode-toggle:hover { border-color: #ff6b35; color: #ff6b35; }
+    .mode-toggle.active { background: #ff6b35; color: #000; border-color: #ff6b35; }
+    .memorize-card {
+      border: 1px solid #222; padding: 16px; background: #111;
+      border-radius: 3px; cursor: pointer; transition: all 0.2s;
+    }
+    .memorize-card:hover { border-color: #ff6b35; }
+    .reveal-btn {
+      background: #222; border: 1px solid #444; color: #888;
+      padding: 4px 12px; cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; border-radius: 2px; transition: all 0.2s;
+    }
+    .reveal-btn:hover { border-color: #ff6b35; color: #ff6b35; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const reports = [
+      {
+        id: 1,
+        tag: "THE BIBLE",
+        title: "Her Fandom, Her Buying Power",
+        source: "Wasserman / The Collective",
+        date: "September 2025",
+        sample: "7,100+ women across 10 countries",
+        survivalBrief: `Okay. So imagine you're an alien who just landed on Earth and you want to understand the sports industry. You look at the data and go: "Ah, so the dominant economic force on the planet — women, who control $31.8 trillion in discretionary spending and will oversee 75% of global discretionary spending by 2028 — are being treated as a niche afterthought by an industry worth hundreds of billions." That's... that's the plot of this report. It's like discovering that restaurants have been ignoring the 84% of customers who decide where to eat.`,
+        keyInsights: [
+          { stat: "84%", context: "of women sports fans are key decision-makers in sports purchases", whyItMatters: "48% are THE primary decision-maker, 36% share responsibility. When a brand sponsor shows up on a WNBA jersey, it's not reaching a 'secondary audience.' It's reaching the person who literally controls the household sports budget." },
+          { stat: "66%", context: "feel sports organizations don't understand or appeal to them", whyItMatters: "Your prep notes said 94% — that's the AUSTRALIAN figure specifically. Globally it's 66% who feel misunderstood by sports orgs, with 39% saying brands specifically fail them. Both are devastating. Use 66% globally but cite 94% for Australia as the extreme case." },
+          { stat: "91%", context: "of women sports fan MOTHERS are involved in their kids' sporting activities", whyItMatters: "This connects women's sports fandom to the $77 BILLION global youth sports industry. She's not just buying her own jersey — she's the gateway to the entire next generation of fans. Ignore her and you lose two generations." },
+          { stat: "50%", context: "of non-mothers feel especially misrepresented by brand marketing", whyItMatters: "Brands default to 'soccer mom' archetypes. Half of childless women fans feel invisible. That's a segmentation failure so bad it should be taught in business school." },
+          { stat: "72%", context: "of women globally identify as avid fans of 1+ sports", whyItMatters: "Nearly three-quarters of ALL women are avid sports fans. The entire premise that women's sports fandom needs to 'grow' is partially wrong — it already exists. It's just being ignored." }
+        ],
+        hackathonAmmo: "The core argument: the industry has a DESIGN problem, not a DEMAND problem. Women fans are there, spending, deciding. The infrastructure wasn't built for them. If your hackathon solution addresses HOW to redesign fandom with women at the center — not how to 'attract' women (they're already there) — you're speaking this report's language.",
+        gotcha: "Be careful with the 94% stat. It's Australia-specific. The global figure is 66% + 39% (orgs vs brands). The 94% appeared in press coverage because it's dramatic. Know which one you're citing."
+      },
+      {
+        id: 2,
+        tag: "THE ECONOMICS ENGINE",
+        title: "The New Economy of Sports (Parts 1-3)",
+        source: "Wasserman / The Collective + RBC",
+        date: "2023-2025",
+        sample: "1,800 North American fans + proprietary financial data + league valuations",
+        survivalBrief: `This is a three-part series that says: "Hey, you know how women athletes generate 2x more fan engagement than men? Cool, cool. They also earn 21x less. TWENTY-ONE TIMES." Each part builds the investment case differently. Part 1 = the athlete value gap. Part 2 = league investment opportunity. Part 3 = the adjacent business ecosystem. Together, they're Wasserman's analytical manifesto.`,
+        keyInsights: [
+          { stat: "21x", context: "men earn 21x more in playing salary on average", whyItMatters: "The headline injustice number. But the INSIGHT is that 82% of women athletes' income comes from commercial partnerships — they depend on sponsorships 2x more than men. So they work harder for sponsors, creating a virtuous cycle of engagement... that they're barely paid for." },
+          { stat: "2x", context: "women athletes drive 2x more fan engagement despite earning fractions", whyItMatters: "Mid-tier women athletes (500K-2M followers) CRUSH on engagement rate vs male peers. The engagement-per-dollar-spent ratio makes women athletes the best ROI in sports marketing. Period." },
+          { stat: "13%", context: "WNBA fans are 13% more likely to purchase team merch than NBA fans", whyItMatters: "Not 'women's sports fans generally.' WNBA fans specifically outperform NBA fans on merch purchasing propensity. Teams with high merch revenue get higher valuations. Direct line from fandom to franchise value." },
+          { stat: "48% / 42%", context: "WNBA attendance up 48% YoY, NWSL up 42% YoY", whyItMatters: "Broadcast viewership projected +32% WNBA, +24% NWSL over next 3 years. These aren't hockey-stick fantasies — they're contracted media deal projections." },
+          { stat: "$500M", context: "Golden State Valkyries valued at $500M (most valuable WNBA franchise)", whyItMatters: "Part 3 data. Average WNBA franchise: $269M. Average NWSL: $134M with Angel City at $280M. Only 35% of sports science includes research on females. That gap = investment opportunity in performance tech, facilities, data." }
+        ],
+        hackathonAmmo: "The key Wasserman FRAMEWORK: they value women athletes on engagement efficiency, not raw audience scale. Legacy models pay for eyeballs. Wasserman argues you should pay for INFLUENCE per dollar. If your model can quantify engagement efficiency, you're speaking their language back to them.",
+        gotcha: "Part 1 salary data is from 2022 calendar year. The 21x gap may have narrowed since. Don't claim it's current — say 'as of the most recent comprehensive analysis.' Part 2 was Nov 2024, Part 3 was Dec 2025."
+      },
+      {
+        id: 3,
+        tag: "THE SEGMENTATION GOLDMINE",
+        title: "The New Faces Redefining Women's Sports Fans",
+        source: "Wasserman / The Collective",
+        date: "2025",
+        sample: "From Her Love of the Game dataset (35,000+ across 30 countries)",
+        survivalBrief: `Here's where it gets spicy. Every other report treats 'women's sports fans' as a monolith. This one says: "Actually, there are three completely different species of fan, and if you market to all of them the same way, you deserve the 66% who say you don't understand them." It introduces IsoFans, DuoFans, and SocialFans. This is your secret weapon because almost nobody at the hackathon will know this segmentation exists.`,
+        keyInsights: [
+          { stat: "18%", context: "IsoFans — have NOBODY to share their fandom with", whyItMatters: "Solo consumers, not by choice — by circumstance. Curious about connection but zero fandom community. Every platform is designed for social watching. IsoFans are invisible to current infrastructure. ENORMOUS product design opportunity." },
+          { stat: "28%", context: "DuoFans — have exactly ONE person to share fandom with", whyItMatters: "Paired and personal. Their fandom is intimate, not performative. They don't want stadium wave experiences — they want shareable content for two. Think: 'share with your person' features, curated notifications." },
+          { stat: "~54%", context: "SocialFans — community-first, always-on", whyItMatters: "The remainder. These are who current infrastructure IS built for — group chats, watch parties, social feeds. They're already being served. The market opportunity is disproportionately with Iso and Duo fans." },
+          { stat: "50%", context: "identify as fans of women's sports GENERALLY rather than a specific team", whyItMatters: "UNIQUE to women's sports. In men's sports, you're a Knicks fan. In women's, half are 'fan of the movement.' Traditional team-based engagement models don't apply. You need sport-level and movement-level strategies." },
+          { stat: "29%", context: "more likely to buy from brands supporting causes they care about", whyItMatters: "Values-driven purchasing is the baseline. Women fans reward value alignment, not just sports affiliation. Cause-marketing isn't nice-to-have — it's the primary purchase driver." }
+        ],
+        hackathonAmmo: "If you can build ANYTHING that specifically addresses IsoFan isolation — a feature, a community mechanic, a content format — you have a differentiated angle nobody else will have. Say 'IsoFan' out loud during your presentation. It proves domain fluency the way Daniel Lee saying he 'knew hockey' won him the hackathon.",
+        gotcha: "The 50% 'general fan' stat appears in both this report and Parity's wrap-up. Attribute it to Wasserman segmentation work, not Parity — it originates here."
+      },
+      {
+        id: 4,
+        tag: "THE McKINSEY MACHINE",
+        title: "Closing the Monetization Gap",
+        source: "McKinsey & Company",
+        date: "August 2025",
+        sample: "Custom fan survey + GlobalData analysis + marketer survey",
+        survivalBrief: `McKinsey did what McKinsey does: found a gap, put a dollar sign on it, made a chart. The gap is $2.5 billion in media rights potential by 2030. Currently, women's sports is under 2% of the $75B U.S. market. The kicker? The monetization gap is WIDENING — men's media revenue per viewing hour growing at +7% CAGR while women's DECLINING at -3%. More eyeballs, less money per eyeball. It's like getting promoted and taking a pay cut.`,
+        keyInsights: [
+          { stat: "$2.5B", context: "projected media rights opportunity by 2030", whyItMatters: "YOUR HEADLINE NUMBER. Not total revenue — specifically media rights value. McKinsey projects $520M in contracted rights by 2030, but the FULL opportunity if monetization-per-viewing-hour reaches parity is $2.5B." },
+          { stat: "80%", context: "of U.S. sports fans follow women's sports", whyItMatters: "Four out of five. More than half became fans in the last 5 years. This isn't growth — it's an explosion. The addressable audience already exists at massive scale." },
+          { stat: "27%", context: "avid fans are 27% more likely to purchase from athlete-endorsed brands", whyItMatters: "Avid women's sports fans follow 10 sports on average (vs 7 for men's). Attention-diverse but purchase-loyal. 45% loyal to individual athletes specifically, driving spending with brand partners." },
+          { stat: "-3% vs +7%", context: "women's media revenue per viewing hour DECLINING while men's GROWS", whyItMatters: "THE most important structural insight. Viewership up. Revenue per viewing hour DOWN. The audience is being undermonetized. Rights deals signed below fair value. The gap is widening. This is your 'why now' for any investment thesis." },
+          { stat: "40x", context: "NWSL media rights AAV increase with new CBS/ESPN/Prime deals", whyItMatters: "WNBA's new $200M AAV deal (2026) is 3x the current $60M deal, outpacing the NBA's renewal rate by 2.6x. ESPN's NCAA women's basketball deal: 10x more costly than previous. The correction is happening — but it's still early." }
+        ],
+        hackathonAmmo: "McKinsey identifies 4 stakeholder groups to close the gap: investors, marketers/sponsors, media companies, and rights holders. Also 4 challenges: fragmented fan attention (they follow 10 sports), underdeveloped media infrastructure, no dedicated facilities, crowded marketplace. If your solution addresses one of these challenges, say 'McKinsey identified X as a key barrier, and we tackle it directly.'",
+        gotcha: "The $2.5B is media rights POTENTIAL, not current or projected revenue. Don't say 'women's sports will be worth $2.5B.' Say 'McKinsey values the media rights opportunity at $2.5B if the monetization gap closes.' Different claim."
+      },
+      {
+        id: 5,
+        tag: "THE GROWTH CHART",
+        title: "Beyond the Billion-Dollar Barrier",
+        source: "Deloitte",
+        date: "March 2025",
+        sample: "Revenue modeling across matchday, broadcast, commercial categories globally",
+        survivalBrief: `Deloitte predicted $1.28B for 2024. Actual: $1.88B. They UNDERSHOT by $600 million. That's not a miss — the market is growing faster than one of the world's largest consulting firms can model. Revenue nearly doubled YoY ($981M to $1.88B). They now project $2.35B for 2025. Given their track record, even THAT might be conservative.`,
+        keyInsights: [
+          { stat: "$1.88B to $2.35B", context: "2024 actual to 2025 projected global women's sports revenue", whyItMatters: "Revenue grew 240% in four years (from $692M in 2022). The original $1.28B forecast getting obliterated by 47% tells you: traditional models can't predict this growth because they're calibrated on men's sports rates." },
+          { stat: "54%", context: "commercial revenue (sponsorships) as share of total, at $1.26B", whyItMatters: "In men's sports, broadcast is king. In women's, commercial revenue leads. Sponsors are driving the economics — not TV deals. That makes sponsor ROI data existentially important for the ecosystem." },
+          { stat: "286%", context: "average ROI for WNBA 'Changemaker' partners", whyItMatters: "One partner got $18M back on a $5M investment. YOUR KILLER ROI NUMBER. Deloitte also notes the shift from ROI to 'return on objectives' (ROO) — brand affinity, social impact, employee engagement. Barclays WSL sponsorship: CEO got 400 emails from proud employees." },
+          { stat: "44% / 35%", context: "basketball ($1.03B) and soccer ($820M) as % of 2025 projected revenue", whyItMatters: "Basketball overtaking soccer as top revenue sport for the first time in 2025. This is the Caitlin Clark / Angel Reese / WNBA expansion effect manifesting in actual dollars." },
+          { stat: "4.5x", context: "women's sports revenue grew 4.5x faster than men's (2022-2024)", whyItMatters: "The relative growth rate story. Men's sports isn't shrinking — women's is just growing at warp speed. Use as 'why should anyone care about this market' opener." }
+        ],
+        hackathonAmmo: "Deloitte calls for a 'venture capital mindset' — long-term, values-driven, accepting that short-term ROI metrics calibrated for mature men's leagues don't apply. Frame your solution using startup/VC language ('early innings,' 'first-mover advantage,' 'infrastructure layer') to mirror Deloitte's thesis.",
+        gotcha: "Deloitte's numbers are GLOBAL. McKinsey's $2.5B is U.S.-focused media rights. Don't conflate. Deloitte $2.35B = worldwide revenue all categories. McKinsey $2.5B = U.S. media-rights-specific opportunity. Both huge, different measurements."
+      },
+      {
+        id: 6,
+        tag: "THE GEN Z DECODER",
+        title: "Gen Z x Women's Sports",
+        source: "Parity",
+        date: "November 2025",
+        sample: "~2,400 U.S. adults (extracted Gen Z cohort analysis)",
+        survivalBrief: `Gen Z was born between the founding of the WNBA (1997) and the NWSL (2013). That's not a coincidence — it's an identity. This generation grew up where women's professional leagues EXISTED. For every other generation, women's pro sports was aspirational. For Gen Z, it's infrastructure. Parity shows this generation doesn't just 'support' women's sports — they economically reward brands that do.`,
+        keyInsights: [
+          { stat: "46%", context: "Gen Z + Millennials are 46% more likely to purchase from brands sponsoring women athletes", whyItMatters: "Your Gen Z purchase lift number. ALL sports fans show 34-36% lift. Gen Z blows past that. Not incremental — a generational shift in how sponsorship converts to revenue." },
+          { stat: "50%", context: "of Gen Z trust women athletes believe in products they promote", whyItMatters: "Highest of any generation. In an era where Gen Z supposedly trusts nothing, women athletes crack through. The single most credible influencer channel for the most skeptical generation." },
+          { stat: "25%", context: "more likely to trust a brand MORE because of women's sports sponsorship", whyItMatters: "Not just 'they notice' — they actively trust MORE. 62% more likely to 'strongly agree' it signals a progressive, forward-thinking brand." },
+          { stat: "2x", context: "twice as likely to be PROUD to support investing brands", whyItMatters: "Emotional brand loyalty, not just purchase intent. They're PROUD. That's the kind of affinity money can't usually buy — but apparently, a women's sports sponsorship can." },
+          { stat: "#1 Strategy", context: "athlete product collaborations are the top way to engage Gen Z", whyItMatters: "Not banner ads, not logos. Co-designed products. Think New Balance x Coco Gauff. Gen Z (56% more likely) also responds to social media contests/giveaways. First digital-native gen wants digital-native activations." }
+        ],
+        hackathonAmmo: "If targeting Gen Z specifically, cite this framework: awareness (highest sponsor awareness in 6/10 categories) to trust (50% trust endorsements) to purchase (46% lift). A complete funnel no other demo delivers this cleanly.",
+        gotcha: "The 46% is Gen Z + Millennials combined. Parity's June 2025 U.S. report has updated figures: 68% of ALL sports fans trust women athletes, daily/weekly viewers at 84%. Use the newer data if citing trust broadly."
+      },
+      {
+        id: 7,
+        tag: "THE DEAL TRACKER",
+        title: "WNBA + NWSL Partnership Reports",
+        source: "SponsorUnited",
+        date: "2024-2025",
+        sample: "AI-powered deal tracking (SPND platform), 2.5M+ sponsorship deals",
+        survivalBrief: `SponsorUnited is the Bloomberg Terminal of sports sponsorship. The headline: WNBA hit $76M through 551 deals in 2024. NWSL hit $75M through 445 deals. Nearly identical revenue, wildly different structures. And Angel City FC generates $29 per social follower — outperforming 15 MLS and 25 MLB teams per-game in sponsorship revenue. A women's soccer expansion team is out-earning major league baseball teams. That sentence should be illegal.`,
+        keyInsights: [
+          { stat: "$76M / $75M", context: "WNBA / NWSL team sponsorship revenue in 2024", whyItMatters: "NWSL is 13 years old and nearly matched the 27-year-old WNBA. NWSL did it with fewer deals (445 vs 551) but larger average size ($169K vs $138K) — attracts bigger spenders. Both dwarfed by NBA/NHL ($1B+), but growth rate is the story." },
+          { stat: "52%", context: "WNBA team deals up 52% since 2022", whyItMatters: "52% in NUMBER of deals. More brands entering = broader category diversification = more resilient revenue. 155 brands (34%) were NEW to WNBA in 2024 alone, from 27 categories." },
+          { stat: "$140K-$170K", context: "average team sponsorship cost vs $559K in men's major leagues", whyItMatters: "Entry price is 3-4x cheaper. For mid-market brands: premium engagement at discount pricing. But rising FAST with expansion (5 new WNBA teams by 2030, 2 NWSL by 2026)." },
+          { stat: "$29/follower", context: "Angel City FC vs Dodgers $13, Yankees $8", whyItMatters: "A women's soccer team converts followers to sponsor revenue at 3.6x the Dodgers' rate. This isn't about scale — it's about engagement quality. The brain-breaking stat." },
+          { stat: "600%", context: "WNBA merchandise sales increase in 2024", whyItMatters: "Driven by Clark/Reese/Brink rookie class. Four of the league's five most-endorsed players are 1st or 2nd year. The talent pipeline creates brand demand in real-time." }
+        ],
+        hackathonAmmo: "SponsorUnited identifies massive 'white space' in sponsorship categories. Hard seltzer: 112 deals across men's leagues, only 2 in WNBA+NWSL combined. Insurance, QSR, Auto — all underrepresented. If your solution helps brands identify these white-space opportunities, you're building the tool they're describing.",
+        gotcha: "Your prep notes say 'sponsor value increasing 312% YoY.' I couldn't verify that exact figure in SponsorUnited's published data. Verified numbers: 52% deal increase since 2022, 17% in 2024, 71% social following growth. Use the verified ones."
+      }
+    ];
+
+    const memorizeStats = [
+      { stat: "$2.5B", source: "McKinsey", what: "Media rights opportunity by 2030", mnemonic: "Two-and-a-half BILLION reasons to pay attention" },
+      { stat: "66%", source: "Wasserman", what: "Feel misunderstood by sports orgs (global)", mnemonic: "Two-thirds of your audience says you don't get them" },
+      { stat: "286%", source: "Deloitte", what: "WNBA Changemaker partner avg ROI", mnemonic: "Almost triple your money — in women's sports" },
+      { stat: "52%", source: "SponsorUnited", what: "WNBA deals up since 2022", mnemonic: "Half again as many brands in just two years" },
+      { stat: "46%", source: "Parity", what: "Gen Z purchase lift from women's sports sponsorship", mnemonic: "Nearly half of Gen Z converts on this" },
+    ];
+
+    function WomensSportsDeepDive() {
+      const [activeReport, setActiveReport] = useState(0);
+      const [expandedInsight, setExpandedInsight] = useState(null);
+      const [quizMode, setQuizMode] = useState(false);
+      const [quizAnswers, setQuizAnswers] = useState({});
+      const [showMemorize, setShowMemorize] = useState(false);
+      const [revealedStats, setRevealedStats] = useState({});
+
+      const report = reports[activeReport];
+
+      const quizQuestions = [
+        { q: "What % of women sports fans are key purchase decision-makers?", a: "84%", source: "Wasserman" },
+        { q: "How much more do men athletes earn in playing salary vs women on average?", a: "21x", source: "Wasserman/RBC" },
+        { q: "What are the three fan segments from the Wasserman segmentation study?", a: "IsoFans, DuoFans, SocialFans", source: "The Collective" },
+        { q: "What's the media rights opportunity value McKinsey projects by 2030?", a: "$2.5 billion", source: "McKinsey" },
+        { q: "By how much did Deloitte undershoot 2024 women's sports revenue?", a: "$600M ($1.28B predicted vs $1.88B actual)", source: "Deloitte" },
+        { q: "What ROI did WNBA Changemaker partners average?", a: "286%", source: "Deloitte" },
+        { q: "What % of Gen Z trust women athletes' product endorsements?", a: "50% (highest of any generation)", source: "Parity" },
+        { q: "What does Angel City FC generate per social follower in sponsor revenue?", a: "$29 (vs Dodgers $13, Yankees $8)", source: "SponsorUnited" },
+        { q: "What % identify as fans of women's sports generally (not a specific team)?", a: "50%", source: "Wasserman" },
+        { q: "Women's media revenue per viewing hour CAGR vs men's?", a: "-3% vs +7% (gap is WIDENING)", source: "McKinsey" },
+      ];
+
+      return (
+        <div style={{
+          fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+          background: "#0a0a0a",
+          color: "#e0e0e0",
+          minHeight: "100vh",
+          padding: "0",
+        }}>
+          <div style={{ padding: "32px 24px 24px", borderBottom: "1px solid #222" }}>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: "#ff6b35", marginBottom: 8 }}>
+              MIT SLOAN SPORTS ANALYTICS CONFERENCE // HACKATHON PREP
+            </div>
+            <h1 style={{
+              fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(22px, 4vw, 32px)",
+              fontWeight: 700, color: "#fff", margin: "0 0 8px 0", lineHeight: 1.1,
+            }}>
+              The Watney Protocol:<br/>
+              <span style={{ color: "#ff6b35" }}>Women's Sports Fandom Survival Guide</span>
+            </h1>
+            <p style={{ color: "#666", fontSize: 13, margin: 0, maxWidth: 700, lineHeight: 1.5 }}>
+              "I'm going to have to science the sh*t out of seven industry reports so that when I stand
+              in front of MIT Sloan judges, they think I've been studying women's sports economics since birth.
+              Let's begin." — You, probably
+            </p>
+          </div>
+
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid #222", display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button className={`mode-toggle ${!quizMode && !showMemorize ? 'active' : ''}`}
+              onClick={() => { setQuizMode(false); setShowMemorize(false); }}>REPORT DEEP-DIVES</button>
+            <button className={`mode-toggle ${showMemorize ? 'active' : ''}`}
+              onClick={() => { setShowMemorize(true); setQuizMode(false); }}>FLASH CARDS</button>
+            <button className={`mode-toggle ${quizMode ? 'active' : ''}`}
+              onClick={() => { setQuizMode(true); setShowMemorize(false); }}>SELF-QUIZ</button>
+          </div>
+
+          {showMemorize && (
+            <div style={{ padding: 24 }}>
+              <div className="section-label">THE FIVE STATS TO TATTOO ON YOUR BRAIN</div>
+              <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>
+                Click each card to reveal. If you can rattle these off in conversation, judges will assume you've read everything.
+              </p>
+              <div style={{ display: "grid", gap: 12 }}>
+                {memorizeStats.map((s, i) => (
+                  <div key={i} className="memorize-card"
+                    onClick={() => setRevealedStats(prev => ({...prev, [i]: !prev[i]}))}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span className="stat-badge">{s.stat}</span>
+                      <span style={{ fontSize: 10, color: "#666" }}>{s.source}</span>
+                    </div>
+                    {revealedStats[i] ? (
+                      <div>
+                        <div style={{ fontSize: 14, color: "#ccc", marginBottom: 6 }}>{s.what}</div>
+                        <div style={{ fontSize: 12, color: "#ff6b35", fontStyle: "italic" }}>
+                          Mnemonic: "{s.mnemonic}"
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 12, color: "#555" }}>tap to reveal</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 24, padding: 16, border: "1px solid #333", borderRadius: 3 }}>
+                <div style={{ fontSize: 11, color: "#ff6b35", marginBottom: 8 }}>THE 60-SECOND PITCH NARRATIVE</div>
+                <p style={{ fontSize: 13, color: "#ccc", lineHeight: 1.7, margin: 0 }}>
+                  "Women's sports is a <strong style={{color:"#ff6b35"}}>$2.5 billion</strong> media rights opportunity
+                  growing <strong style={{color:"#ff6b35"}}>4.5x faster</strong> than men's. Yet <strong style={{color:"#ff6b35"}}>66%</strong> of
+                  women fans say orgs don't understand them. The brands that DO show up see
+                  <strong style={{color:"#ff6b35"}}> 286% ROI</strong> — and Gen Z is
+                  <strong style={{color:"#ff6b35"}}> 46% more likely</strong> to buy from those brands.
+                  The audience is there. The money is there. The infrastructure to connect them isn't. That's what we're solving."
+                </p>
+              </div>
+            </div>
+          )}
+
+          {quizMode && (
+            <div style={{ padding: 24 }}>
+              <div className="section-label">ACTIVE RECALL QUIZ — NO PEEKING</div>
+              <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>
+                Type your answer, then click reveal. Active recall is 3x more effective than re-reading.
+              </p>
+              <div style={{ display: "grid", gap: 16 }}>
+                {quizQuestions.map((q, i) => (
+                  <div key={i} style={{ border: "1px solid #222", padding: 16, borderRadius: 3, background: "#111" }}>
+                    <div style={{ fontSize: 13, color: "#ccc", marginBottom: 4 }}>
+                      <span style={{ color: "#ff6b35", marginRight: 8 }}>Q{i+1}.</span>{q.q}
+                    </div>
+                    <input className="quiz-input" placeholder="Your answer..."
+                      value={quizAnswers[i] || ""}
+                      onChange={(e) => setQuizAnswers(prev => ({...prev, [i]: e.target.value}))} />
+                    <div style={{ marginTop: 8 }}>
+                      <button className="reveal-btn"
+                        onClick={() => setQuizAnswers(prev => ({...prev, [`r${i}`]: !prev[`r${i}`]}))}>
+                        {quizAnswers[`r${i}`] ? 'HIDE' : 'REVEAL'}
+                      </button>
+                      {quizAnswers[`r${i}`] && (
+                        <span style={{ marginLeft: 12, fontSize: 13, color: "#4caf50" }}>
+                          {q.a} <span style={{ color: "#666", fontSize: 11 }}>({q.source})</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!quizMode && !showMemorize && (
+            <>
+              <div style={{
+                padding: "12px 24px", borderBottom: "1px solid #222",
+                display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch",
+              }}>
+                {reports.map((r, i) => (
+                  <button key={i} className={`report-tab ${activeReport === i ? 'active' : ''}`}
+                    onClick={() => { setActiveReport(i); setExpandedInsight(null); }}>
+                    {r.tag}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ padding: 24 }}>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+                    <span style={{
+                      background: "#ff6b35", color: "#000", padding: "2px 10px",
+                      fontSize: 10, fontWeight: 700, letterSpacing: 2, borderRadius: 2
+                    }}>REPORT {report.id}/7</span>
+                    <span style={{ fontSize: 11, color: "#666" }}>{report.source} | {report.date}</span>
+                  </div>
+                  <h2 style={{
+                    fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(20px, 3vw, 28px)",
+                    fontWeight: 700, color: "#fff", margin: "0 0 4px 0"
+                  }}>{report.title}</h2>
+                  <div style={{ fontSize: 11, color: "#555" }}>Sample: {report.sample}</div>
+                </div>
+
+                <div className="section-label">THE SURVIVAL BRIEF</div>
+                <p style={{ fontSize: 14, color: "#ccc", lineHeight: 1.8, marginBottom: 24, maxWidth: 750 }}>
+                  {report.survivalBrief}
+                </p>
+
+                <div className="section-label">KEY INSIGHTS — CLICK TO EXPAND</div>
+                <div style={{ marginBottom: 24 }}>
+                  {report.keyInsights.map((insight, i) => (
+                    <div key={i} className={`insight-card ${expandedInsight === i ? 'expanded' : ''}`}
+                      onClick={() => setExpandedInsight(expandedInsight === i ? null : i)}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <span className="stat-badge">{insight.stat}</span>
+                          <span style={{ marginLeft: 12, fontSize: 13, color: "#aaa" }}>{insight.context}</span>
+                        </div>
+                        <span style={{ color: "#555", fontSize: 18, flexShrink: 0, marginLeft: 8 }}>
+                          {expandedInsight === i ? '\u2212' : '+'}
+                        </span>
+                      </div>
+                      {expandedInsight === i && (
+                        <div style={{
+                          marginTop: 12, paddingTop: 12, borderTop: "1px solid #222",
+                          fontSize: 13, color: "#ccc", lineHeight: 1.7,
+                        }}>
+                          <span style={{ color: "#ff6b35", fontWeight: 700, fontSize: 10, letterSpacing: 2 }}>
+                            WHY IT MATTERS
+                          </span><br/>{insight.whyItMatters}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="section-label">HACKATHON AMMO</div>
+                <div className="ammo-box">
+                  <p style={{ fontSize: 13, color: "#ccc", lineHeight: 1.7, margin: 0 }}>{report.hackathonAmmo}</p>
+                </div>
+
+                <div className="section-label" style={{ color: "#ff3333" }}>GOTCHA — DON'T SCREW THIS UP</div>
+                <div className="gotcha-box">
+                  <p style={{ fontSize: 13, color: "#ccc", lineHeight: 1.7, margin: 0 }}>{report.gotcha}</p>
+                </div>
+
+                <div style={{
+                  display: "flex", justifyContent: "space-between", marginTop: 32,
+                  paddingTop: 16, borderTop: "1px solid #222",
+                }}>
+                  <button className="mode-toggle"
+                    onClick={() => { setActiveReport(Math.max(0, activeReport - 1)); setExpandedInsight(null); }}
+                    disabled={activeReport === 0} style={{ opacity: activeReport === 0 ? 0.3 : 1 }}>
+                    PREV REPORT
+                  </button>
+                  <button className="mode-toggle"
+                    onClick={() => { setActiveReport(Math.min(reports.length - 1, activeReport + 1)); setExpandedInsight(null); }}
+                    disabled={activeReport === reports.length - 1}
+                    style={{ opacity: activeReport === reports.length - 1 ? 0.3 : 1 }}>
+                    NEXT REPORT
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div style={{
+            padding: "16px 24px", borderTop: "1px solid #222",
+            color: "#333", fontSize: 10, textAlign: "center",
+          }}>
+            SOL 1 OF 3 — DOMAIN IMMERSION PHASE — YOU'RE GOING TO SCIENCE THE SH*T OUT OF THIS
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<WomensSportsDeepDive />);
+  </script>
+</body>
+</html>
