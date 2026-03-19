@@ -612,3 +612,286 @@ def export_all_charts(outputs_dir: str = 'outputs/') -> None:
         print(f"   💾 {path}")
 
     print(f"✅ All charts exported. You're ready for slide-making.\n")
+
+
+# ---------------------------------------------------------------------------
+# SURVEY CROSS-TAB CHARTS — for the real hackathon data
+# ---------------------------------------------------------------------------
+
+def plot_segment_bars(
+    pct_df: pd.DataFrame,
+    title: str,
+    subtitle: str = '',
+    highlight_col: str = None,
+    top_n: int = 8,
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Horizontal grouped bar chart comparing segments for a single question.
+
+    Args:
+        pct_df: Percentage DataFrame (options as index, segments as columns).
+        title: Chart title (the insight, not the question number).
+        subtitle: Optional subtitle for context.
+        highlight_col: Column to emphasize with a brighter color.
+        top_n: Max number of response options to show.
+        save_path: Optional save path.
+
+    Returns:
+        Matplotlib Figure.
+    """
+    _apply_dark_theme()
+
+    df = pct_df.head(top_n).copy()
+    cols = [c for c in df.columns if df[c].sum() > 0]
+    n_cols = len(cols)
+
+    fig, ax = plt.subplots(figsize=(12, max(5, len(df) * 0.7)))
+
+    y = np.arange(len(df))
+    bar_h = 0.8 / n_cols
+
+    for i, col in enumerate(cols):
+        color = PALETTE[i]
+        alpha = 1.0 if col == highlight_col else 0.8
+        offset = (i - n_cols / 2 + 0.5) * bar_h
+        bars = ax.barh(y + offset, df[col], bar_h, label=col,
+                       color=color, alpha=alpha)
+        for bar, val in zip(bars, df[col]):
+            if val > 2:
+                ax.text(bar.get_width() + 0.4, bar.get_y() + bar.get_height() / 2,
+                        f'{val:.0f}%', va='center', fontsize=8, color=TEXT_COLOR)
+
+    ax.set_yticks(y)
+    short_labels = [o[:50] + '...' if len(o) > 50 else o for o in df.index]
+    ax.set_yticklabels(short_labels, fontsize=9)
+    ax.set_xlabel('% of Respondents', fontsize=10)
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=15)
+    if subtitle:
+        ax.text(0.5, 1.02, subtitle, transform=ax.transAxes,
+                ha='center', fontsize=10, color='#aaaaaa')
+    ax.legend(loc='lower right', fontsize=9)
+    ax.invert_yaxis()
+    plt.tight_layout()
+    _save_if_needed(fig, save_path)
+    return fig
+
+
+def plot_gap_chart(
+    gap_df: pd.DataFrame,
+    col_a: str,
+    col_b: str,
+    title: str,
+    top_n: int = 10,
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Diverging bar chart showing percentage-point gaps between two segments.
+
+    Bars go left (col_a higher) or right (col_b higher), making it
+    instantly clear which options differentiate the two groups.
+
+    Args:
+        gap_df: Output from gap_analysis() — must have 'gap_pp' column.
+        col_a: Name of first segment.
+        col_b: Name of second segment.
+        title: Chart title.
+        top_n: Show top N gaps.
+        save_path: Optional save path.
+
+    Returns:
+        Matplotlib Figure.
+    """
+    _apply_dark_theme()
+
+    df = gap_df.head(top_n).copy()
+    fig, ax = plt.subplots(figsize=(12, max(5, len(df) * 0.6)))
+
+    y = np.arange(len(df))
+    colors = [PALETTE[0] if v > 0 else PALETTE[1] for v in df['gap_pp']]
+
+    ax.barh(y, df['gap_pp'], color=colors, alpha=0.85)
+
+    for i, (val, ca, cb) in enumerate(zip(df['gap_pp'], df[col_a], df[col_b])):
+        side = 'left' if val < 0 else 'right'
+        x_pos = val + (0.3 if val >= 0 else -0.3)
+        ax.text(x_pos, i, f'{val:+.1f}pp', va='center', ha=side,
+                fontsize=9, color=TEXT_COLOR)
+
+    ax.set_yticks(y)
+    short_labels = [o[:45] + '...' if len(o) > 45 else o for o in df.index]
+    ax.set_yticklabels(short_labels, fontsize=9)
+    ax.axvline(x=0, color=TEXT_COLOR, linewidth=0.8, alpha=0.5)
+    ax.set_xlabel(f'Percentage Point Gap ({col_a} minus {col_b})', fontsize=10)
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=15)
+
+    # Legend patches
+    from matplotlib.patches import Patch
+    ax.legend(handles=[
+        Patch(color=PALETTE[0], label=f'{col_a} higher'),
+        Patch(color=PALETTE[1], label=f'{col_b} higher'),
+    ], loc='lower right', fontsize=9)
+
+    ax.invert_yaxis()
+    plt.tight_layout()
+    _save_if_needed(fig, save_path)
+    return fig
+
+
+def plot_index_heatmap(
+    survey: dict,
+    question_ids: list,
+    dimension: str = 'motherhood',
+    title: str = 'Segment Index Analysis',
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Heatmap of index values across multiple questions for a dimension.
+
+    Index > 120 = over-indexes (red), < 80 = under-indexes (blue).
+    Each row is the top response option for a question.
+
+    Args:
+        survey: Output from load_survey().
+        question_ids: List of question IDs.
+        dimension: Cross-tab dimension.
+        title: Chart title.
+        save_path: Optional save path.
+
+    Returns:
+        Matplotlib Figure.
+    """
+    from survey_analysis import compute_index, compare_segments
+    from parse_survey import get_question
+
+    _apply_dark_theme()
+
+    rows = {}
+    for q_id in question_ids:
+        try:
+            idx_df = compute_index(survey, q_id, dimension)
+            pct = compare_segments(survey, q_id, dimension)
+            # Use the top response option by total
+            top_opt = pct['Total'].idxmax() if 'Total' in pct.columns else pct.iloc[:, 0].idxmax()
+            label = f'{q_id}: {top_opt[:35]}'
+            rows[label] = idx_df.loc[top_opt]
+        except Exception:
+            continue
+
+    if not rows:
+        return None
+
+    heat_df = pd.DataFrame(rows).T
+    fig, ax = plt.subplots(figsize=(max(8, len(heat_df.columns) * 2), max(5, len(heat_df) * 0.5)))
+
+    sns.heatmap(
+        heat_df, annot=True, fmt='.0f', center=100,
+        cmap='RdBu_r', linewidths=0.5, linecolor=GRID_COLOR,
+        cbar_kws={'label': 'Index (100 = baseline)'},
+        ax=ax, vmin=60, vmax=140,
+    )
+
+    ax.set_title(title, fontsize=14, fontweight='bold', color=TEXT_COLOR, pad=15)
+    ax.set_ylabel('')
+    plt.xticks(rotation=0)
+    plt.yticks(rotation=0, fontsize=9)
+    plt.tight_layout()
+    _save_if_needed(fig, save_path)
+    return fig
+
+
+def plot_single_bar(
+    pct_series: pd.Series,
+    title: str,
+    color: str = None,
+    top_n: int = 10,
+    highlight_idx: list = None,
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Simple horizontal bar chart for a single segment's responses.
+
+    Args:
+        pct_series: Series with response options as index, percentages as values.
+        title: Chart title.
+        color: Bar color (defaults to PALETTE[1]).
+        top_n: Max bars to show.
+        highlight_idx: List of index labels to highlight in a different color.
+        save_path: Optional save path.
+
+    Returns:
+        Matplotlib Figure.
+    """
+    _apply_dark_theme()
+
+    data = pct_series.sort_values(ascending=False).head(top_n)
+    fig, ax = plt.subplots(figsize=(11, max(4, len(data) * 0.55)))
+
+    y = np.arange(len(data))
+    bar_color = color or PALETTE[1]
+    colors = []
+    for opt in data.index:
+        if highlight_idx and opt in highlight_idx:
+            colors.append(PALETTE[0])
+        else:
+            colors.append(bar_color)
+
+    ax.barh(y, data.values, color=colors, alpha=0.85)
+    for i, v in enumerate(data.values):
+        ax.text(v + 0.3, i, f'{v:.1f}%', va='center', fontsize=10, color=TEXT_COLOR)
+
+    ax.set_yticks(y)
+    short_labels = [o[:50] + '...' if len(o) > 50 else o for o in data.index]
+    ax.set_yticklabels(short_labels, fontsize=9)
+    ax.set_xlabel('% of Respondents')
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=10)
+    ax.invert_yaxis()
+    plt.tight_layout()
+    _save_if_needed(fig, save_path)
+    return fig
+
+
+def plot_stacked_comparison(
+    pct_df: pd.DataFrame,
+    title: str,
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Stacked horizontal bar chart — one bar per segment, colored by response.
+
+    Good for Likert-scale questions where you want to see the distribution
+    across all options at once.
+
+    Args:
+        pct_df: Percentage DataFrame (options as index, segments as columns).
+        title: Chart title.
+        save_path: Optional save path.
+
+    Returns:
+        Matplotlib Figure.
+    """
+    _apply_dark_theme()
+
+    cols = [c for c in pct_df.columns if pct_df[c].sum() > 0]
+    df = pct_df[cols].T
+
+    fig, ax = plt.subplots(figsize=(12, max(4, len(cols) * 1.2)))
+
+    left = np.zeros(len(cols))
+    for i, opt in enumerate(df.columns):
+        vals = df[opt].values
+        color = PALETTE[i % len(PALETTE)]
+        short_opt = opt[:25] + '...' if len(opt) > 25 else opt
+        ax.barh(range(len(cols)), vals, left=left, label=short_opt,
+                color=color, alpha=0.85)
+        # Label segments > 8%
+        for j, v in enumerate(vals):
+            if v > 8:
+                ax.text(left[j] + v / 2, j, f'{v:.0f}%',
+                        ha='center', va='center', fontsize=8, color='white')
+        left += vals
+
+    ax.set_yticks(range(len(cols)))
+    ax.set_yticklabels(cols, fontsize=10)
+    ax.set_xlabel('% of Respondents')
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=15)
+    ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=8)
+    ax.invert_yaxis()
+    plt.tight_layout()
+    _save_if_needed(fig, save_path)
+    return fig
