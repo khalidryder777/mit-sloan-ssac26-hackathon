@@ -4,7 +4,58 @@ html, body, #root {
   padding: 0;
   width: 100%;
   min-height: 100dvh;
-  background: #0a1628;
+  background: #060e1a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Phone frame — constrains app to mobile aspect ratio on all screens */
+.phone-frame {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 20px;
+}
+
+.phone-screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  max-height: 932px;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #0a1628;
+  scrollbar-width: thin;
+  scrollbar-color: #1e3354 transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+/* On desktop, show as a phone with rounded corners and shadow */
+@media (min-width: 500px) {
+  .phone-frame {
+    padding: 24px;
+  }
+  .phone-screen {
+    min-height: 0;
+    height: min(92dvh, 932px);
+    border-radius: 40px;
+    box-shadow:
+      0 0 0 2px #1e3354,
+      0 25px 80px rgba(0, 0, 0, 0.6),
+      0 0 120px rgba(255, 209, 102, 0.05);
+  }
+}
+
+/* On actual mobile, go full screen — no frame needed */
+@media (max-width: 499px) {
+  .phone-frame {
+    padding: 0;
+  }
+  .phone-screen {
+    max-height: none;
+    min-height: 100dvh;
+  }
 }

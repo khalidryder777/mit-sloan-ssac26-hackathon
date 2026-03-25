@@ -1,0 +1,31 @@
+[build]
+  base = "fanmatch"
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking
+    X-Frame-Options = "DENY"
+    # Prevent MIME sniffing
+    X-Content-Type-Options = "nosniff"
+    # Control referrer info sent to external sites
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Disable unused browser features
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    # Content Security Policy
+    # - scripts: self only (Vite bundles everything)
+    # - styles: self + unsafe-inline (JSX inline styles) + Google Fonts
+    # - fonts: self + Google Fonts CDN
+    # - images: self + data URIs (SVG favicons etc.)
+    # - no frames, no object embeds
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; object-src 'none';"

@@ -32,10 +32,10 @@ const PLAYERS = [
   { name: "Christian Pulisic", country: "USA", flag: "\u{1F1FA}\u{1F1F8}", number: 10, gender: "M", image: "pulisic.jpg", values: ["Family First", "Resilience", "Authenticity"], story: "Carries the weight of a nation's hopes while staying grounded in family and faith.", beyond: "Quietly funds youth soccer programs in his hometown of Hershey, PA and speaks openly about mental health in sports." },
   { name: "Trinity Rodman", country: "USA", flag: "\u{1F1FA}\u{1F1F8}", number: 2, gender: "F", image: "rodman.jpg", values: ["Creativity", "Authenticity", "Ambition"], story: "Forging her own identity, proving that creativity and confidence win games and change culture.", beyond: "Uses her platform to champion young women building their own paths, independent of family legacy." },
   { name: "Vinicius Jr", country: "Brazil", flag: "\u{1F1E7}\u{1F1F7}", number: 7, gender: "M", image: "vinicius.jpg", values: ["Community Impact", "Resilience", "Connection"], story: "Fights racism on and off the pitch, turning adversity into advocacy for millions.", beyond: "Leads anti-racism campaigns with UEFA and FIFA, and funds education programs in Sao Goncalo, Brazil." },
-  { name: "Aitana Bonmati", country: "Spain", flag: "\u{1F1EA}\u{1F1F8}", number: 6, gender: "F", image: "bonmati.jpg", values: ["Growth", "Connection", "Fairness & Equality"], story: "Quiet brilliance and relentless improvement \u2014 proving you don't need to be the loudest to lead.", beyond: "Donates Ballon d'Or bonus to girls' football academies and speaks on gender equity at the UN." },
+  { name: "Aitana Bonmati", country: "Spain", flag: "\u{1F1EA}\u{1F1F8}", number: 6, gender: "F", image: "bonmati.jpg", values: ["Growth", "Connection", "Fairness & Equality"], story: "Quiet brilliance and relentless improvement, proving you don't need to be the loudest to lead.", beyond: "Donates Ballon d'Or bonus to girls' football academies and speaks on gender equity at the UN." },
   { name: "Jude Bellingham", country: "England", flag: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", number: 5, gender: "M", image: "bellingham.jpg", values: ["Ambition", "Family First", "Authenticity"], story: "Rose from Birmingham to the Bernabeu, never losing sight of where he came from.", beyond: "Credits his family for every achievement and actively mentors young Black players in England's academy system." },
-  { name: "Sophia Smith", country: "USA", flag: "\u{1F1FA}\u{1F1F8}", number: 11, gender: "F", image: "sophia_smith.jpg", values: ["Family First", "Community Impact", "Ambition"], story: "Small-town roots, world-class talent \u2014 using every goal to lift her community higher.", beyond: "Runs youth clinics in rural Colorado and advocates for women's sports media coverage." },
-  { name: "Megan Rapinoe", country: "USA", flag: "\u{1F1FA}\u{1F1F8}", number: 15, gender: "F", image: "rapinoe.jpg", values: ["Fairness & Equality", "Authenticity", "Community Impact"], story: "A true legend who changed the game \u2014 on the pitch, at the podium, and in the culture.", beyond: "Two-time World Cup Champion turned activist and entrepreneur. Co-founded A Touch More with Sue Bird to elevate stories about revolutionaries who move culture forward. Presidential Medal of Freedom recipient." },
+  { name: "Sophia Smith", country: "USA", flag: "\u{1F1FA}\u{1F1F8}", number: 11, gender: "F", image: "sophia_smith.jpg", values: ["Family First", "Community Impact", "Ambition"], story: "Grew up in a small town, became world class. Using every goal to lift her community higher.", beyond: "Runs youth clinics in rural Colorado and advocates for women's sports media coverage." },
+  { name: "Megan Rapinoe", country: "USA", flag: "\u{1F1FA}\u{1F1F8}", number: 15, gender: "F", image: "rapinoe.jpg", values: ["Fairness & Equality", "Authenticity", "Community Impact"], story: "A true legend who changed the game. On the pitch, at the podium, and in the culture.", beyond: "Two-time World Cup Champion turned activist and entrepreneur. Co-founded A Touch More with Sue Bird to elevate stories about revolutionaries who move culture forward. Presidential Medal of Freedom recipient." },
 ];
 
 const VALUES = [
@@ -66,6 +66,79 @@ const SHARE_PLATFORMS = [
 ];
 
 const TOTAL_SCREENS = 9;
+const LIVE_FAN_COUNT_START = 40_217;
+
+function useLiveFanCount() {
+  const [count, setCount] = useState(LIVE_FAN_COUNT_START);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount((c) => c + Math.floor(Math.random() * 10) + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+  return count;
+}
+
+function RollingDigit({ digit, height = 14 }) {
+  const [curr, setCurr] = useState(digit);
+  const [animKey, setAnimKey] = useState(0);
+  const prevRef = useRef(digit);
+
+  useEffect(() => {
+    if (digit !== prevRef.current) {
+      prevRef.current = digit;
+      setAnimKey((k) => k + 1);
+      const t = setTimeout(() => setCurr(digit), 380);
+      return () => clearTimeout(t);
+    }
+  }, [digit]);
+
+  return (
+    <span style={{
+      display: "inline-block",
+      height,
+      overflow: "hidden",
+      verticalAlign: "bottom",
+      position: "relative",
+      width: "0.62em",
+      textAlign: "center",
+      fontVariantNumeric: "tabular-nums",
+    }}>
+      <span style={{ position: "absolute", inset: 0, lineHeight: `${height}px`, textAlign: "center" }}>
+        {curr}
+      </span>
+      {animKey > 0 && (
+        <span
+          key={animKey}
+          style={{
+            position: "absolute",
+            inset: 0,
+            lineHeight: `${height}px`,
+            textAlign: "center",
+            animation: "digitRollUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+          }}
+        >
+          {digit}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function RollingCounter({ count, height = 14 }) {
+  const formatted = count.toLocaleString();
+  return (
+    <span style={{ display: "inline-flex", alignItems: "flex-end" }}>
+      {formatted.split("").map((char, i) =>
+        char === "," ? (
+          <span key={i} style={{ lineHeight: `${height}px` }}>,</span>
+        ) : (
+          <RollingDigit key={i} digit={parseInt(char, 10)} height={height} />
+        )
+      )}
+    </span>
+  );
+}
 
 // ─────────────────────────────────────────────
 // LOGIC HELPERS
@@ -100,27 +173,27 @@ function findMatch(userValues, gender = null) {
 
 function getFactoids(answers) {
   const facts = [];
-  facts.push({ emoji: "\u{1F525}", text: "You're in the top 12% of values-driven fans worldwide" });
+  facts.push({ emoji: "\u{1F525}", text: "You're in the top 12% of fans who lead with their values worldwide" });
   if (["kids", "crew"].includes(answers.household)) {
-    facts.push({ emoji: "\u{1F49B}", text: "Families who watch together build stronger bonds \u2014 your kids will remember this World Cup forever" });
+    facts.push({ emoji: "\u{1F49B}", text: "Families who watch together build stronger bonds. Your kids will remember this World Cup forever" });
   }
   if (answers.viewStyle === "couch") {
-    facts.push({ emoji: "\u{1F4FA}", text: "Home viewers build the deepest player connections \u2014 you're the heartbeat of game day" });
+    facts.push({ emoji: "\u{1F4FA}", text: "Home viewers build the deepest player connections. You're the heartbeat of game day" });
   }
   if (answers.viewStyle === "stadium") {
-    facts.push({ emoji: "\u{1F3DF}\uFE0F", text: "Live fans create the energy everyone else feeds off \u2014 the stadium needs people like you" });
+    facts.push({ emoji: "\u{1F3DF}\uFE0F", text: "Live fans create the energy everyone else feeds off. The stadium needs people like you" });
   }
   if (answers.engagementDriver === "stories") {
-    facts.push({ emoji: "\u{1F4AC}", text: "You see what most fans miss \u2014 the human stories that make the beautiful game beautiful" });
+    facts.push({ emoji: "\u{1F4AC}", text: "You see what most fans miss. The human stories that make the beautiful game beautiful" });
   }
   if (answers.household === "solo") {
-    facts.push({ emoji: "\u2728", text: "Solo fans are the fastest-growing community in football \u2014 you're never really watching alone" });
+    facts.push({ emoji: "\u2728", text: "Solo fans are the fastest-growing community in football. You're never really watching alone" });
   }
   if (answers.household === "partner") {
-    facts.push({ emoji: "\u{1F46B}", text: "Couples who share a team share something deeper \u2014 this is your story now too" });
+    facts.push({ emoji: "\u{1F46B}", text: "Couples who share a team share something deeper. This is your story now too" });
   }
   if (answers.household === "friends") {
-    facts.push({ emoji: "\u{1F389}", text: "Watch parties are where lifelong fans are made \u2014 your crew is the real starting XI" });
+    facts.push({ emoji: "\u{1F389}", text: "Watch parties are where lifelong fans are made. Your crew is the real starting XI" });
   }
   return facts.slice(0, 3);
 }
@@ -138,7 +211,7 @@ const XP_CHECKPOINTS = [
   { xp: 50, label: "Match", icon: "\u26BD" },
 ];
 
-function ProgressBar({ screen, xp = 0 }) {
+function ProgressBar({ screen, xp = 0, flash }) {
   const maxXP = XP_CHECKPOINTS[XP_CHECKPOINTS.length - 1].xp;
   const pct = Math.min(100, Math.round((xp / maxXP) * 100));
   // Find the latest reached checkpoint
@@ -148,7 +221,18 @@ function ProgressBar({ screen, xp = 0 }) {
   }
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, background: `${COLORS.bg}ee`, backdropFilter: "blur(12px)", padding: "10px 16px 4px" }}>
+    <div style={{ position: "sticky", top: 0, left: 0, right: 0, zIndex: 50, background: `${COLORS.bg}ee`, backdropFilter: "blur(12px)", padding: "8px 16px 4px" }}>
+      {/* Top row: back space + XP badge right-aligned */}
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: 6 }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 4,
+          opacity: 0.65, transition: "all 0.3s ease",
+          transform: flash ? "scale(1.2)" : "scale(1)",
+        }}>
+          <Trophy size={11} color={COLORS.gold} />
+          <span style={{ color: COLORS.gold, fontWeight: 700, fontSize: 11 }}>{xp} XP</span>
+        </div>
+      </div>
       {/* Progress bar track */}
       <div style={{ height: 4, borderRadius: 2, background: COLORS.border, position: "relative", marginBottom: 6 }}>
         <div
@@ -221,25 +305,24 @@ function XPCounter({ xp, flash }) {
   return (
     <div
       style={{
-        position: "fixed",
-        top: 52,
-        right: 16,
+        position: "absolute",
+        top: 6,
+        right: 10,
         zIndex: 51,
-        background: flash ? `linear-gradient(135deg, ${COLORS.gold}30, ${COLORS.bgCard})` : `${COLORS.bgCard}dd`,
-        backdropFilter: "blur(8px)",
-        border: `2px solid ${flash ? COLORS.gold : COLORS.border}`,
-        borderRadius: 24,
-        padding: "7px 16px",
+        background: flash ? `linear-gradient(135deg, ${COLORS.gold}20, transparent)` : "transparent",
+        border: "none",
+        borderRadius: 16,
+        padding: "4px 10px",
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: 5,
         transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        transform: flash ? "scale(1.3)" : "scale(1)",
-        boxShadow: flash ? `0 0 30px ${COLORS.gold}66, 0 0 60px ${COLORS.gold}22` : `0 2px 12px rgba(0,0,0,0.3)`,
+        transform: flash ? "scale(1.2)" : "scale(1)",
+        opacity: 0.7,
       }}
     >
-      <Trophy size={16} color={COLORS.gold} />
-      <span style={{ color: COLORS.gold, fontWeight: 800, fontSize: 15 }}>{xp} XP</span>
+      <Trophy size={13} color={COLORS.gold} />
+      <span style={{ color: COLORS.gold, fontWeight: 700, fontSize: 12 }}>{xp} XP</span>
     </div>
   );
 }
@@ -249,7 +332,7 @@ function XPBadge({ amount, visible }) {
   return (
     <div
       style={{
-        position: "fixed",
+        position: "absolute",
         top: "40%",
         left: "50%",
         transform: "translateX(-50%)",
@@ -310,22 +393,23 @@ function BackButton({ onClick }) {
     <button
       onClick={onClick}
       style={{
-        position: "fixed", top: 52, left: 16, zIndex: 51,
-        background: `${COLORS.bgCard}dd`, backdropFilter: "blur(8px)",
-        border: `1px solid ${COLORS.border}`, borderRadius: 24,
-        width: 38, height: 38, cursor: "pointer",
+        position: "absolute", top: 6, left: 10, zIndex: 51,
+        background: "transparent",
+        border: "none", borderRadius: 20,
+        width: 32, height: 32, cursor: "pointer",
         display: "flex", alignItems: "center", justifyContent: "center",
         transition: "all 0.2s ease",
+        opacity: 0.5,
       }}
     >
-      <ChevronLeft size={20} color={COLORS.muted} />
+      <ChevronLeft size={18} color={COLORS.muted} />
     </button>
   );
 }
 
 function FloatingOrbs() {
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
+    <div style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
       <div className="orb" style={{ width: 260, height: 260, background: `${COLORS.teal}18`, top: "-8%", right: "-12%", animation: "float1 12s ease-in-out infinite" }} />
       <div className="orb" style={{ width: 200, height: 200, background: `${COLORS.coral}12`, bottom: "10%", left: "-10%", animation: "float2 15s ease-in-out infinite" }} />
       <div className="orb" style={{ width: 180, height: 180, background: `${COLORS.gold}10`, top: "40%", right: "5%", animation: "float3 10s ease-in-out infinite" }} />
@@ -338,12 +422,12 @@ function ScreenWrap({ children, style: extraStyle }) {
   return (
     <div
       style={{
-        minHeight: "100dvh",
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "60px 20px 32px",
+        padding: "40px 20px 32px",
         textAlign: "center",
         animation: "fadeInScale 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
         position: "relative",
@@ -353,6 +437,121 @@ function ScreenWrap({ children, style: extraStyle }) {
     >
       {children}
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// INFO BUTTON + MODAL  (Design Rationale System)
+// ─────────────────────────────────────────────
+
+function InfoModal({ info, onClose }) {
+  if (!info) return null;
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 999,
+        background: "rgba(0,0,0,0.78)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20, animation: "fadeIn 0.2s ease",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: `linear-gradient(145deg, ${COLORS.bgCard}, ${COLORS.bgLight})`,
+          borderRadius: 24, padding: "26px 20px 20px",
+          maxWidth: 320, width: "100%",
+          border: `1px solid ${COLORS.gold}44`,
+          boxShadow: `0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px ${COLORS.gold}08 inset`,
+          position: "relative",
+          animation: "fadeInScale 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* close */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute", top: 12, right: 12,
+            background: COLORS.bgLight, border: `1px solid ${COLORS.border}`,
+            borderRadius: 8, width: 28, height: 28, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: COLORS.muted,
+          }}
+        >
+          <X size={14} />
+        </button>
+
+        {/* title row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{
+            width: 30, height: 30, borderRadius: 10,
+            background: `linear-gradient(135deg, ${COLORS.gold}33, ${COLORS.gold}0a)`,
+            border: `1.5px solid ${COLORS.gold}55`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: COLORS.gold, fontSize: 15, fontWeight: 800, flexShrink: 0,
+          }}>
+            i
+          </div>
+          <h3 style={{ color: COLORS.white, fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{info.title}</h3>
+        </div>
+
+        {/* fan perspective */}
+        {info.user && (
+          <div style={{
+            marginBottom: 10,
+            background: `${COLORS.teal}0c`, border: `1px solid ${COLORS.teal}28`,
+            borderRadius: 14, padding: "12px 14px",
+          }}>
+            <p style={{ color: COLORS.teal, fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>
+              👤 Fan Experience
+            </p>
+            <p style={{ color: COLORS.muted, fontSize: 12, lineHeight: 1.55 }}>{info.user}</p>
+          </div>
+        )}
+
+        {/* business value */}
+        {info.biz && (
+          <div style={{
+            background: `${COLORS.gold}0c`, border: `1px solid ${COLORS.gold}28`,
+            borderRadius: 14, padding: "12px 14px",
+          }}>
+            <p style={{ color: COLORS.gold, fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>
+              💼 Business Value
+            </p>
+            <p style={{ color: COLORS.muted, fontSize: 12, lineHeight: 1.55 }}>{info.biz}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InfoBtn({ info, style: extraStyle }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        title="Why this?"
+        style={{
+          background: `linear-gradient(135deg, ${COLORS.gold}28, ${COLORS.gold}0c)`,
+          border: `1.5px solid ${COLORS.gold}66`,
+          borderRadius: "50%",
+          width: 26, height: 26,
+          cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: COLORS.gold,
+          fontSize: 13, fontWeight: 800, lineHeight: 1,
+          padding: 0, flexShrink: 0,
+          transition: "all 0.2s ease",
+          ...extraStyle,
+        }}
+      >
+        i
+      </button>
+      {open && <InfoModal info={info} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
@@ -442,14 +641,14 @@ function SpiderChart({ data, size = 260, animated = true, color = COLORS.teal, i
 function WhyPopup({ onClose }) {
   return (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 200,
+      position: "absolute", inset: 0, zIndex: 200,
       background: "radial-gradient(ellipse at center, rgba(10,22,40,0.95) 0%, rgba(0,0,0,0.98) 100%)",
       display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
       animation: "fadeIn 0.4s ease",
     }}>
       {/* Background orbs for popup */}
-      <div className="orb" style={{ width: 200, height: 200, background: `${COLORS.gold}12`, top: "10%", right: "5%", animation: "float1 10s ease-in-out infinite", position: "fixed" }} />
-      <div className="orb" style={{ width: 160, height: 160, background: `${COLORS.teal}10`, bottom: "15%", left: "5%", animation: "float2 12s ease-in-out infinite", position: "fixed" }} />
+      <div className="orb" style={{ width: 200, height: 200, background: `${COLORS.gold}12`, top: "10%", right: "5%", animation: "float1 10s ease-in-out infinite", position: "absolute" }} />
+      <div className="orb" style={{ width: 160, height: 160, background: `${COLORS.teal}10`, bottom: "15%", left: "5%", animation: "float2 12s ease-in-out infinite", position: "absolute" }} />
       <div style={{
         background: `linear-gradient(145deg, ${COLORS.bgCard}, ${COLORS.bgLight})`,
         borderRadius: 28, padding: "36px 26px 28px",
@@ -503,10 +702,134 @@ function WhyPopup({ onClose }) {
   );
 }
 
+const INFO = {
+  welcome: {
+    title: "Why FanMatch?",
+    user: "A 2-minute personality quiz that matches you with the FIFA 2026 player who shares your values and life story. Not just whoever is most famous. Fun, fast, and surprisingly personal.",
+    biz: "Frictionless psychographic data collection disguised as an identity experience. Each completion generates 14 first-party signals worth $12 to $18 in B2B audience intelligence. Gamification drives 78% completion versus 22% for traditional surveys.",
+  },
+  household: {
+    title: "Household Setup",
+    user: "We tailor player matches and rewards for your whole crew. Solo fans, couples, and families each get a different personalised experience.",
+    biz: "Household type is the number one structural predictor of sports spend. Families with kids represent FIFA's highest LTV segment, spending 3 to 4 times more than solo fans (Wasserman Research 2024). Single question, enormous commercial signal.",
+  },
+  householdKids: {
+    title: "Kids Count",
+    user: "Helps us find the right player matches and great gameday content for the whole family.",
+    biz: "Number of children predicts youth merchandise spend, family ticket bundle intent, and content subscription uptake. Granular input with high commercial specificity.",
+  },
+  vibe: {
+    title: "Gameday Vibe",
+    user: "Quick picks that map your fan personality across 4 natural dimensions. No right or wrong, just your authentic gameday self.",
+    biz: "4 binary signals create 16 fan archetypes mapped to Wasserman Q12/Q14/Q17 segments. Viewing preference (couch vs. stadium) is the primary broadcaster vs. live event sponsor targeting split.",
+  },
+  vibeViewStyle: {
+    title: "Viewing Preference",
+    user: "Shapes your Live Energy and Digital Engagement scores on your Fan DNA chart.",
+    biz: "Primary signal for broadcaster vs. live event sponsor affinity. Stadium fans spend 3.2x more on merch; couch fans show 2.3x higher content subscription intent.",
+  },
+  vibeDriver: {
+    title: "Engagement Driver",
+    user: "Determines whether we match you on a player's story and personality or their on-pitch performance stats.",
+    biz: "Highest commercial signal in the vibe block. Narrative fans have 2.3x higher content subscription intent; performance fans skew toward live events and merch activation.",
+  },
+  vibeFood: {
+    title: "Game-Day Fuel",
+    user: "Personalises your Match Day Box and food and drink recommendations.",
+    biz: "Food and beverage brand affinity signal for F&B sponsor activation, a key FIFA 2026 sponsor category.",
+  },
+  vibeEnergy: {
+    title: "Saturday Energy",
+    user: "Fine-tunes your player personality match.",
+    biz: "Lifestyle segmentation (planned vs. spontaneous) maps to lifestyle brand partnership categories and ad creative targeting.",
+  },
+  values: {
+    title: "Values Selection",
+    user: "Your values reveal which player is truly your match. Not by stats, but by who they are as a person off the pitch.",
+    biz: "Values are the single highest-signal commercial data point. Values alignment predicts brand purchase intent 3 times better than demographics alone (Wasserman findings). 9 values map to distinct sponsor category affinities.",
+  },
+  city: {
+    title: "City and Venue",
+    user: "We'll surface which World Cup matches are closest to you and connect you to local fan events in your city.",
+    biz: "Geographic proximity to host venues is the primary ticket purchase intent signal. City plus household type enables family package geo-targeting across all 16 FIFA 2026 host markets.",
+  },
+  quickfire: {
+    title: "Quick Fire Round",
+    user: "Three last questions to sharpen your player match and unlock personalised rewards.",
+    biz: "The three highest commercial value data points: brand discovery channel (media budget allocation), purchase driver (product positioning), and content preference (sponsor content strategy). Maps directly to Wasserman Q22 and Q24.",
+  },
+  quickfireDiscovery: {
+    title: "Brand Discovery Channel",
+    user: "Helps us surface the kind of content and deals you'll actually enjoy.",
+    biz: "Maps to Wasserman Q24. Determines optimal activation channel per fan: social fans respond to influencer campaigns; event fans respond to experiential; creator fans respond to podcast and content partnerships.",
+  },
+  quickfireBuy: {
+    title: "Purchase Driver",
+    user: "Personalises which sponsor offers and products we recommend to you.",
+    biz: "Maps to Wasserman Q22. Directly informs product positioning and call-to-action language per fan segment. Quality first, ethics first, or innovation first messaging.",
+  },
+  quickfireContent: {
+    title: "Content Preference",
+    user: "Shapes the behind-the-scenes stories, stats, and fan culture content we'll recommend.",
+    biz: "Feeds directly into Wasserman's content strategy framework. Story fans point to player narrative partnerships; stats fans point to data product sponsorships; family fans point to multigenerational activations.",
+  },
+  resultsDNA: {
+    title: "Your Fan DNA",
+    user: "Your unique 6-dimension profile. No two fans look alike. This is your genuine football identity, shaped by how you answered.",
+    biz: "The radar chart makes psychographic profiles tangible. Each axis maps to a sponsor activation vector: Live Energy covers events and ticketing; Digital Engagement covers streaming; Social Amplify covers influencer work; Brand Receptivity covers brand partners; Values Drive covers cause marketing; Story Connection covers content.",
+  },
+  resultsMatch: {
+    title: "Player Match",
+    user: "Matched on shared values and life story, not just stats. The Beyond the Pitch section shows who your player really is as a person.",
+    biz: "Values-based matching creates emotional brand bridges. 94% of women are primary purchase decision-makers; values-matched players drive 4.2x higher sponsor brand recall than performance-based associations.",
+  },
+  resultsBeyondPitch: {
+    title: "Beyond the Pitch",
+    user: "The side of players that mainstream sports media rarely covers. Leadership, advocacy, community, and family.",
+    biz: "Key research finding: women fans connect with player stories and identity, not just athletic performance. This section directly addresses what 1,800+ Wasserman survey respondents called inauthentic sports marketing.",
+  },
+  rewards: {
+    title: "XP Rewards",
+    user: "Your quiz responses have real value. These rewards are your return for sharing. No tricks, no form to fill in, no spam.",
+    biz: "Gamified reward tiers drive data completeness and consent capture. Sponsor-funded rewards create direct ROI attribution per brand partner. A 15% discount coupon converts at around 34% for sports retail segments.",
+  },
+  rewardsRecs: {
+    title: "Personalised Recommendations",
+    user: "Products and experiences tailored to your Fan DNA profile, not generic ads.",
+    biz: "Sponsor inventory is matched to fan profiles using the 14 signals captured. This is the core monetisation layer: first-party data feeds hyper-targeted offers which drive measurable conversion for brand partners.",
+  },
+  keepPlaying: {
+    title: "Journey Continues",
+    user: "FanMatch isn't a one-time quiz. It's an ongoing relationship that grows with every match week through the tournament.",
+    biz: "Retention layer: Phase 2 features extend session depth and enable longitudinal fan tracking across the 64-match tournament. Community matching drives organic referral growth. Each return visit deepens the profile.",
+  },
+  dashboardKPIs: {
+    title: "Audience KPIs",
+    user: undefined,
+    biz: "Real-time aggregate intelligence from quiz completions. These headline numbers anchor the commercial pitch: scale (fans profiled), household penetration (families), revenue potential per fan, and completion funnel efficiency.",
+  },
+  dashboardSpider: {
+    title: "Persona DNA Profiles",
+    user: undefined,
+    biz: "Multi-persona psychographic overlay enables hyper-targeted campaign planning. Sponsors can target individual persona clusters (e.g. Whole Crew moms) rather than broad demographics, dramatically improving ad relevance and ROI.",
+  },
+  dashboardValues: {
+    title: "Values and Data Signals",
+    user: undefined,
+    biz: "Values data maps directly to brand alignment scores. Top value is Family First, pointing to family product sponsors. High digital percentage points to streaming and OTT partner priority. Each of the 14 data points has a named commercial application.",
+  },
+  dashboardData: {
+    title: "14 Data Points Per Fan",
+    user: undefined,
+    biz: "Each fan provides 14 structured first-party signals via a 2-minute gamified experience. The industry benchmark for comparable profiling is $12 to $18 per user via traditional market research. FanMatch delivers at near-zero marginal cost.",
+  },
+};
+
 function WelcomeScreen({ onNext }) {
+  const fanCount = useLiveFanCount();
   return (
     <ScreenWrap>
-      {/* Decorative hex grid behind hero */}
+      {/* Hex grid background */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
         <svg width="100%" height="100%" style={{ opacity: 0.04, position: "absolute", top: 0, left: 0 }}>
           <defs>
@@ -518,30 +841,26 @@ function WelcomeScreen({ onNext }) {
         </svg>
       </div>
 
-      <div style={{ marginBottom: 8, position: "relative", zIndex: 1 }}>
-        {/* Animated soccer icon with glow ring */}
-        <div style={{ position: "relative", width: 80, height: 80, margin: "0 auto 20px" }}>
+      <div style={{ position: "relative", zIndex: 1, width: "100%" }}>
+
+        {/* FanMatch logo + wordmark */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 28, animation: "heroReveal 0.6s ease forwards" }}>
           <div style={{
-            position: "absolute", inset: -6, borderRadius: "50%",
-            border: `2px solid ${COLORS.gold}33`,
-            animation: "spinSlow 12s linear infinite",
-          }}>
-            <div style={{ position: "absolute", top: -3, left: "50%", transform: "translateX(-50%)", width: 6, height: 6, borderRadius: "50%", background: COLORS.gold }} />
-          </div>
-          <div style={{
-            width: 80, height: 80, borderRadius: "50%",
+            width: 38, height: 38, borderRadius: 10,
             background: `linear-gradient(135deg, ${COLORS.bgLight}, ${COLORS.bgCard})`,
-            border: `2px solid ${COLORS.gold}22`,
+            border: `1.5px solid ${COLORS.gold}33`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 40, boxShadow: `0 0 40px ${COLORS.gold}15`,
+            fontSize: 20, boxShadow: `0 0 20px ${COLORS.gold}15`,
           }}>
             {"\u26BD"}
           </div>
+          <span style={{ color: COLORS.white, fontSize: 20, fontWeight: 800, letterSpacing: -0.5 }}>FanMatch</span>
         </div>
 
+        {/* Hero title */}
         <h1 style={{
-          fontSize: 38, fontWeight: 800, color: COLORS.white, lineHeight: 1.1, marginBottom: 14,
-          animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+          fontSize: 38, fontWeight: 800, color: COLORS.white, lineHeight: 1.1, marginBottom: 12,
+          animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both",
         }}>
           Find Your<br />
           <span style={{
@@ -551,59 +870,75 @@ function WelcomeScreen({ onNext }) {
             World Cup Match
           </span>
         </h1>
+
         <p style={{
-          color: COLORS.muted, fontSize: 16, lineHeight: 1.6, maxWidth: 300, margin: "0 auto 6px",
-          animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both",
+          color: COLORS.muted, fontSize: 15, lineHeight: 1.6, maxWidth: 290, margin: "0 auto 24px",
+          animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both",
         }}>
-          Discover which FIFA 2026 players share your values, your vibe, and your game-day energy.
+          Match with the FIFA 2026 player who shares your values. Get your Fan DNA. Bring the whole family.
         </p>
-        <p style={{
-          color: `${COLORS.teal}aa`, fontSize: 14, marginBottom: 36, fontWeight: 500,
+
+        {/* 3 feature pills */}
+        <div style={{
+          display: "flex", justifyContent: "center", gap: 10, marginBottom: 28,
           animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both",
         }}>
-          2 minutes. 100% fun. Your World Cup identity awaits.
-        </p>
-      </div>
+          {[
+            { emoji: "\u{1F3AD}", label: "Your identity" },
+            { emoji: "\u{1F381}", label: "Rewards" },
+            { emoji: "\u{1F46A}", label: "Whole family" },
+          ].map((item, i) => (
+            <div key={i} style={{
+              textAlign: "center", background: COLORS.bgCard,
+              border: `1px solid ${COLORS.border}`, borderRadius: 14,
+              padding: "10px 14px", flex: 1, maxWidth: 90,
+            }}>
+              <div style={{ fontSize: 22, marginBottom: 4 }}>{item.emoji}</div>
+              <p style={{ color: COLORS.muted, fontSize: 10, fontWeight: 600 }}>{item.label}</p>
+            </div>
+          ))}
+        </div>
 
-      {/* Glowing CTA */}
-      <div style={{ animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both" }}>
-        <button
-          onClick={onNext}
-          style={{
-            background: GRADIENT.gold, color: COLORS.bg, border: "none", borderRadius: 18,
-            padding: "18px 52px", fontSize: 18, fontWeight: 800, cursor: "pointer",
-            animation: "glowPulse 2.5s ease-in-out infinite",
-            position: "relative", overflow: "hidden",
-            letterSpacing: 0.5,
-          }}
-        >
-          {/* Shimmer sweep */}
-          <div style={{
-            position: "absolute", inset: 0, overflow: "hidden", borderRadius: 18,
-          }}>
-            <div style={{
-              position: "absolute", top: 0, left: 0, width: "50%", height: "100%",
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
-              animation: "shimmerSlide 3s ease-in-out infinite",
-            }} />
-          </div>
-          <span style={{ position: "relative", zIndex: 1 }}>Let's Go &rarr;</span>
-        </button>
-      </div>
+        {/* CTA */}
+        <div style={{ animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both" }}>
+          <button
+            onClick={onNext}
+            style={{
+              background: GRADIENT.gold, color: COLORS.bg, border: "none", borderRadius: 18,
+              padding: "18px 52px", fontSize: 18, fontWeight: 800, cursor: "pointer",
+              animation: "glowPulse 2.5s ease-in-out infinite",
+              position: "relative", overflow: "hidden", letterSpacing: 0.5, width: "100%", maxWidth: 320,
+            }}
+          >
+            <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 18 }}>
+              <div style={{
+                position: "absolute", top: 0, left: 0, width: "50%", height: "100%",
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
+                animation: "shimmerSlide 3s ease-in-out infinite",
+              }} />
+            </div>
+            <span style={{ position: "relative", zIndex: 1 }}>Let's Go &rarr;</span>
+          </button>
+          <p style={{ color: COLORS.muted, fontSize: 11, marginTop: 10, opacity: 0.5 }}>2 minutes. No sign-up needed.</p>
+        </div>
 
-      <div style={{ animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both" }}>
-        <p style={{ color: COLORS.muted, fontSize: 13, marginTop: 22, display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
+        {/* Live counter */}
+        <p style={{ color: COLORS.muted, fontSize: 13, marginTop: 16, display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
+          animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both",
+        }}>
           <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: COLORS.teal, boxShadow: `0 0 8px ${COLORS.teal}` }} />
-          12,847 fans matched
+          <RollingCounter count={fanCount} height={13} /> fans matched
         </p>
-      </div>
 
-      <div style={{
-        marginTop: 32, display: "flex", gap: 16, alignItems: "center", opacity: 0.35, fontSize: 11, color: COLORS.muted,
-        animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both",
-      }}>
-        <span>FIFA 2026</span><span style={{ color: COLORS.gold }}>|</span>
-        <span>Wasserman</span><span style={{ color: COLORS.gold }}>|</span><span>SSAC</span>
+        {/* Footer */}
+        <div style={{
+          marginTop: 24, display: "flex", gap: 16, alignItems: "center", justifyContent: "center",
+          opacity: 0.35, fontSize: 11, color: COLORS.muted,
+          animation: "heroReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both",
+        }}>
+          <span>FIFA 2026</span><span style={{ color: COLORS.gold }}>|</span>
+          <span>Wasserman</span><span style={{ color: COLORS.gold }}>|</span><span>SSAC</span>
+        </div>
       </div>
     </ScreenWrap>
   );
@@ -618,11 +953,14 @@ function HouseholdScreen({ onNext, onBack, answers, setAnswers }) {
     { id: "friends", emoji: "\u{1F389}", label: "Friends / Watch Party" },
   ];
   const [numKids, setNumKids] = useState(1);
+  const [numPeople, setNumPeople] = useState(3);
   const showKids = answers.household === "kids" || answers.household === "crew";
+  const showPeople = answers.household === "friends";
 
   return (
     <ScreenWrap>
       {onBack && <BackButton onClick={onBack} />}
+      <InfoBtn info={INFO.household} style={{ position: "absolute", top: 6, right: 10, zIndex: 51 }} />
       <h2 style={{ fontSize: 26, fontWeight: 800, color: COLORS.white, marginBottom: 8 }}>
         Who's on your team today?
       </h2>
@@ -656,13 +994,22 @@ function HouseholdScreen({ onNext, onBack, answers, setAnswers }) {
       </div>
       {showKids && (
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
-          <span style={{ color: COLORS.muted, fontSize: 14 }}>Little fans:</span>
+          <span style={{ color: COLORS.muted, fontSize: 14 }}>How many kids?</span>
+          <InfoBtn info={INFO.householdKids} style={{ width: 20, height: 20, fontSize: 11 }} />
           <button onClick={() => setNumKids(Math.max(1, numKids - 1))} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, width: 40, height: 40, color: COLORS.white, fontSize: 20, cursor: "pointer" }}>-</button>
           <span style={{ color: COLORS.white, fontSize: 20, fontWeight: 700, minWidth: 24 }}>{numKids}</span>
           <button onClick={() => setNumKids(Math.min(5, numKids + 1))} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, width: 40, height: 40, color: COLORS.white, fontSize: 20, cursor: "pointer" }}>+</button>
         </div>
       )}
-      <CTAButton onClick={() => { setAnswers((a) => ({ ...a, numKids })); onNext(); }} disabled={!answers.household}>
+      {showPeople && (
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+          <span style={{ color: COLORS.muted, fontSize: 14 }}>How many people?</span>
+          <button onClick={() => setNumPeople(Math.max(2, numPeople - 1))} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, width: 40, height: 40, color: COLORS.white, fontSize: 20, cursor: "pointer" }}>-</button>
+          <span style={{ color: COLORS.white, fontSize: 20, fontWeight: 700, minWidth: 24 }}>{numPeople}</span>
+          <button onClick={() => setNumPeople(Math.min(20, numPeople + 1))} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, width: 40, height: 40, color: COLORS.white, fontSize: 20, cursor: "pointer" }}>+</button>
+        </div>
+      )}
+      <CTAButton onClick={() => { setAnswers((a) => ({ ...a, numKids, numPeople })); onNext(); }} disabled={!answers.household}>
         Next &rarr;
       </CTAButton>
     </ScreenWrap>
@@ -761,10 +1108,17 @@ function VibeScreen({ onNext, onBack, answers, setAnswers, addXP }) {
   return (
     <ScreenWrap>
       {onBack && <BackButton onClick={pairIdx > 0 ? () => setPairIdx(pairIdx - 1) : onBack} />}
+      <InfoBtn info={INFO.vibe} style={{ position: "absolute", top: 6, right: 10, zIndex: 51 }} />
       <XPBadge amount={10} visible={showXP} />
-      <p style={{ color: COLORS.muted, fontSize: 13, marginBottom: 6 }}>
-        {pairIdx + 1} of {pairs.length}
-      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <p style={{ color: COLORS.muted, fontSize: 13 }}>
+          {pairIdx + 1} of {pairs.length}
+        </p>
+        <InfoBtn
+          info={[INFO.vibeViewStyle, INFO.vibeDriver, INFO.vibeFood, INFO.vibeEnergy][pairIdx]}
+          style={{ width: 20, height: 20, fontSize: 11 }}
+        />
+      </div>
       <h2 style={{ fontSize: 24, fontWeight: 800, color: COLORS.white, marginBottom: 28 }}>
         {currentPair.question}
       </h2>
@@ -798,6 +1152,7 @@ function ValuesScreen({ onNext, onBack, answers, setAnswers, addXP }) {
   return (
     <ScreenWrap>
       {onBack && <BackButton onClick={onBack} />}
+      <InfoBtn info={INFO.values} style={{ position: "absolute", top: 6, right: 10, zIndex: 51 }} />
       <XPBadge amount={15} visible={showXP} />
       <h2 style={{ fontSize: 24, fontWeight: 800, color: COLORS.white, marginBottom: 6 }}>
         What drives you?
@@ -868,6 +1223,7 @@ function CityScreen({ onNext, onBack, answers, setAnswers, addXP }) {
   return (
     <ScreenWrap style={{ justifyContent: "flex-start", paddingTop: 70 }}>
       {onBack && <BackButton onClick={onBack} />}
+      <InfoBtn info={INFO.city} style={{ position: "absolute", top: 6, right: 10, zIndex: 51 }} />
       <XPBadge amount={5} visible={showXP} />
       <h2 style={{ fontSize: 24, fontWeight: 800, color: COLORS.white, marginBottom: 6 }}>
         Your City, Your Cup
@@ -964,9 +1320,12 @@ function QuickFireScreen({ onNext, onBack, answers, setAnswers, addXP }) {
     }, 400);
   };
 
+  const qInfoKeys = [INFO.quickfireDiscovery, INFO.quickfireBuy, INFO.quickfireContent];
+
   return (
     <ScreenWrap>
       {onBack && <BackButton onClick={qIdx > 0 ? () => setQIdx(qIdx - 1) : onBack} />}
+      <InfoBtn info={INFO.quickfire} style={{ position: "absolute", top: 6, right: 10, zIndex: 51 }} />
       <XPBadge amount={10} visible={showXP} />
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 6,
@@ -978,7 +1337,10 @@ function QuickFireScreen({ onNext, onBack, answers, setAnswers, addXP }) {
           Quick Fire Round
         </span>
       </div>
-      <p style={{ color: COLORS.muted, fontSize: 13, marginBottom: 8 }}>{qIdx + 1} of {questions.length}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, justifyContent: "center" }}>
+        <p style={{ color: COLORS.muted, fontSize: 13 }}>{qIdx + 1} of {questions.length}</p>
+        <InfoBtn info={qInfoKeys[qIdx]} style={{ width: 20, height: 20, fontSize: 11 }} />
+      </div>
       <h2 style={{ fontSize: 22, fontWeight: 800, color: COLORS.white, marginBottom: 24 }}>
         {q.question}
       </h2>
@@ -1081,11 +1443,12 @@ function ResultsScreen({ answers, fanDNA, primaryMatch, secondaryMatch, factoids
   return (
     <ScreenWrap style={{ justifyContent: "flex-start", paddingTop: 60 }}>
       {onBack && <BackButton onClick={onBack} />}
+      <InfoBtn info={INFO.resultsMatch} style={{ position: "absolute", top: 6, right: 10, zIndex: 61 }} />
       {/* Dashboard icon */}
       <button
         onClick={onDashboard}
         style={{
-          position: "fixed", bottom: 20, right: 20, zIndex: 60,
+          position: "absolute", bottom: 20, right: 20, zIndex: 60,
           background: COLORS.bgCard, border: `1px solid ${COLORS.border}`,
           borderRadius: 12, width: 44, height: 44, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -1170,7 +1533,10 @@ function ResultsScreen({ answers, fanDNA, primaryMatch, secondaryMatch, factoids
             border: `1px solid ${COLORS.teal}22`, borderLeft: `3px solid ${COLORS.teal}`,
             borderRadius: 12, padding: "12px 14px", marginTop: 10, textAlign: "left",
           }}>
-            <p style={{ color: COLORS.teal, fontSize: 11, fontWeight: 700, marginBottom: 4, letterSpacing: 1, textTransform: "uppercase" }}>Beyond the Pitch</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <p style={{ color: COLORS.teal, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Beyond the Pitch</p>
+              <InfoBtn info={INFO.resultsBeyondPitch} style={{ width: 18, height: 18, fontSize: 10 }} />
+            </div>
             <p style={{ color: COLORS.muted, fontSize: 12, lineHeight: 1.5 }}>{primaryMatch.beyond}</p>
           </div>
         </div>
@@ -1285,6 +1651,7 @@ function ResultsScreen({ answers, fanDNA, primaryMatch, secondaryMatch, factoids
           background: `linear-gradient(135deg, ${COLORS.teal}12, transparent)`,
           border: `1px solid ${COLORS.teal}22`,
           borderRadius: 20, padding: "20px 16px", marginBottom: 4,
+          position: "relative",
         }}>
           <h3 style={{
             color: COLORS.teal, fontSize: 14, fontWeight: 700, letterSpacing: 2,
@@ -1292,6 +1659,7 @@ function ResultsScreen({ answers, fanDNA, primaryMatch, secondaryMatch, factoids
           }}>
             Your Fan DNA
           </h3>
+          <InfoBtn info={INFO.resultsDNA} style={{ position: "absolute", top: 20, right: 20 }} />
           <div style={{ display: "flex", justifyContent: "center" }}>
             <SpiderChart data={fanDNA} />
           </div>
@@ -1377,7 +1745,7 @@ function ResultsScreen({ answers, fanDNA, primaryMatch, secondaryMatch, factoids
 function ShareCard({ fanDNA, primaryMatch, values, onClose }) {
   return (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.85)",
+      position: "absolute", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.85)",
       display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
     }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{
@@ -1517,7 +1885,7 @@ function RewardsScreen({ xp, answers, primaryMatch, onNext, onBack, onDashboard 
     {
       sponsor: "Mengniu Dairy", logo: "/sponsors/mengniu.png", title: "World Cup Family Nutrition Box",
       sub: "Healthy match-day snacks & drinks for the whole crew",
-      why: "Fuel your family's game-day energy", emoji: "\u{1F95B}",
+      why: "Fuel your family's gameday energy", emoji: "\u{1F95B}",
       color: "#009944", priority: 9, show: hasKids,
     },
     {
@@ -1528,7 +1896,7 @@ function RewardsScreen({ xp, answers, primaryMatch, onNext, onBack, onDashboard 
     },
     {
       sponsor: "Lay's", logo: "/sponsors/lays.png", title: "Watch Party Snack Box",
-      sub: "Premium game-day snack spread, delivered",
+      sub: "Premium gameday snack spread, delivered",
       why: "Because your crew fuels on snacks", emoji: "\u{1F9C0}",
       color: "#ffd700", priority: 8, show: isSocial || answers.food === "pizza",
     },
@@ -1571,7 +1939,7 @@ function RewardsScreen({ xp, answers, primaryMatch, onNext, onBack, onDashboard 
     {
       sponsor: "The Home Depot", logo: "/sponsors/homedepot.png", title: "Ultimate Watch Party Setup",
       sub: "DIY outdoor screen build kit + fan zone decor",
-      why: "Build the ultimate game-day experience", emoji: "\u{1F3E0}",
+      why: "Build the ultimate gameday experience", emoji: "\u{1F3E0}",
       color: "#f96302", priority: 6, show: isSocial && isCouch,
     },
     {
@@ -1614,10 +1982,11 @@ function RewardsScreen({ xp, answers, primaryMatch, onNext, onBack, onDashboard 
   return (
     <ScreenWrap style={{ justifyContent: "flex-start", paddingTop: 60 }}>
       {onBack && <BackButton onClick={onBack} />}
+      <InfoBtn info={INFO.rewards} style={{ position: "absolute", top: 6, right: 10, zIndex: 61 }} />
       <button
         onClick={onDashboard}
         style={{
-          position: "fixed", bottom: 20, right: 20, zIndex: 60,
+          position: "absolute", bottom: 20, right: 20, zIndex: 60,
           background: COLORS.bgCard, border: `1px solid ${COLORS.border}`,
           borderRadius: 12, width: 44, height: 44, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -1675,9 +2044,12 @@ function RewardsScreen({ xp, answers, primaryMatch, onNext, onBack, onDashboard 
       )}
 
       {/* Sponsor Recommendations */}
-      <h3 style={{ color: COLORS.muted, fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>
-        Recommended for you
-      </h3>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <h3 style={{ color: COLORS.muted, fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
+          Recommended for you
+        </h3>
+        <InfoBtn info={INFO.rewardsRecs} style={{ width: 20, height: 20, fontSize: 11 }} />
+      </div>
       <p style={{ color: COLORS.muted, fontSize: 11, marginBottom: 14, opacity: 0.6 }}>
         Based on your Fan DNA profile
       </p>
@@ -1750,6 +2122,7 @@ function RewardsScreen({ xp, answers, primaryMatch, onNext, onBack, onDashboard 
 }
 
 function KeepPlayingScreen({ answers, fanDNA, primaryMatch, addXP, onBack, onDashboard, onDataValue }) {
+  const fanCount = useLiveFanCount();
   const [showShare, setShowShare] = useState(false);
   const [shared, setShared] = useState(false);
 
@@ -1780,10 +2153,11 @@ function KeepPlayingScreen({ answers, fanDNA, primaryMatch, addXP, onBack, onDas
   return (
     <ScreenWrap style={{ justifyContent: "flex-start", paddingTop: 60 }}>
       {onBack && <BackButton onClick={onBack} />}
+      <InfoBtn info={INFO.keepPlaying} style={{ position: "absolute", top: 6, right: 10, zIndex: 61 }} />
       <button
         onClick={onDashboard}
         style={{
-          position: "fixed", bottom: 20, right: 20, zIndex: 60,
+          position: "absolute", bottom: 20, right: 20, zIndex: 60,
           background: COLORS.bgCard, border: `1px solid ${COLORS.border}`,
           borderRadius: 12, width: 44, height: 44, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -1955,7 +2329,7 @@ function KeepPlayingScreen({ answers, fanDNA, primaryMatch, addXP, onBack, onDas
       {/* Share modal */}
       {showShare && (
         <div style={{
-          position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.85)",
+          position: "absolute", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.85)",
           display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
         }} onClick={() => setShowShare(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{
@@ -2020,6 +2394,7 @@ function KeepPlayingScreen({ answers, fanDNA, primaryMatch, addXP, onBack, onDas
 function DataValueDashboard({ answers, onBack }) {
   const [opted, setOpted] = useState(null); // null = undecided, true = yes, false = no
   const [animGap, setAnimGap] = useState(false);
+  const fanCount = useLiveFanCount();
 
   useEffect(() => {
     const t = setTimeout(() => setAnimGap(true), 400);
@@ -2031,7 +2406,7 @@ function DataValueDashboard({ answers, onBack }) {
 
   return (
     <div style={{
-      minHeight: "100dvh", background: COLORS.bg, padding: "0 0 40px",
+      minHeight: "100%", background: COLORS.bg, padding: "0 0 40px",
       animation: "fadeIn 0.4s ease",
     }}>
       {/* Back button */}
@@ -2061,7 +2436,7 @@ function DataValueDashboard({ answers, onBack }) {
         </h1>
         <p style={{ color: COLORS.muted, fontSize: 14, lineHeight: 1.6, maxWidth: 320, margin: "0 auto" }}>
           For the first time, FIFA sponsors and broadcasters are hearing
-          directly from fans like you — not assumptions about you.
+          directly from fans like you, not assumptions about you.
         </p>
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 8, marginTop: 18,
@@ -2069,7 +2444,7 @@ function DataValueDashboard({ answers, onBack }) {
           borderRadius: 20, padding: "8px 18px",
         }}>
           <span style={{ fontSize: 18 }}>{"\u{1F3C6}"}</span>
-          <span style={{ color: COLORS.gold, fontSize: 14, fontWeight: 700 }}>12,847 fans have shared their story</span>
+          <span style={{ color: COLORS.gold, fontSize: 14, fontWeight: 700 }}><RollingCounter count={fanCount} height={14} /> fans have shared their story</span>
         </div>
       </div>
 
@@ -2181,13 +2556,13 @@ function DataValueDashboard({ answers, onBack }) {
               tag: "Partnership",
             },
             {
-              emoji: "\u{1F46A}", text: "40% more family-friendly content and experiences planned at host venues for 2026",
+              emoji: "\u{1F46A}", text: "40% more family focused content and experiences planned at host venues for 2026",
               tag: "Families",
             },
             {
               emoji: "\u{1F3DF}\uFE0F",
               text: isHostCity
-                ? `${cityName} is getting a dedicated Family Fan Zone — shaped by fans like you`
+                ? `${cityName} is getting a dedicated Family Fan Zone, shaped by fans like you`
                 : "Host cities are building dedicated Fan Zones shaped by real fan data",
               tag: isHostCity ? cityName : "Fan Zones",
             },
@@ -2241,7 +2616,7 @@ function DataValueDashboard({ answers, onBack }) {
                   boxShadow: "0 4px 20px rgba(255,209,102,0.3)",
                 }}
               >
-                Yes — Keep Me In {"\u{1F64C}"}
+                Yes, Keep Me In {"\u{1F64C}"}
               </button>
               <button
                 onClick={() => setOpted(false)}
@@ -2282,7 +2657,7 @@ function DataValueDashboard({ answers, onBack }) {
         </div>
 
         <p style={{ color: COLORS.muted, fontSize: 11, textAlign: "center", opacity: 0.4, paddingBottom: 10 }}>
-          FanMatch — Built for the future of fandom. Powered by Wasserman x SSAC 2026.
+          FanMatch. Built for the future of fandom. Powered by Wasserman x SSAC 2026.
         </p>
       </div>
     </div>
@@ -2405,7 +2780,7 @@ function Dashboard({ onBack }) {
 
   const kpis = [
     { label: "Moms Matched", value: "4,368", delta: "34% of all fans", color: D.mint },
-    { label: "Digital-First Viewers", value: "72%", delta: "prefer streaming over stadium", color: D.rose },
+    { label: "Digital First Viewers", value: "72%", delta: "prefer streaming over stadium", color: D.rose },
     { label: "Avg Brand Affinity", value: "74", delta: "receptivity score / 100", color: D.amber },
     { label: "Revenue Potential", value: "$4.2M", delta: "across 4 personas", color: D.accent },
   ];
@@ -2472,7 +2847,7 @@ function Dashboard({ onBack }) {
   ];
 
   // Spider chart helper
-  const spiderSize = 380;
+  const spiderSize = 280;
   const sCx = spiderSize / 2, sCy = spiderSize / 2, sR = spiderSize * 0.34;
   const sLabels = ["Live Energy", "Digital Vibes", "Social Power", "Brand Fit", "Values Core", "Storyteller"];
   const sKeys = ["liveEnergy", "digitalEngage", "socialAmplify", "brandReceptivity", "valuesDrive", "storyConnection"];
@@ -2485,245 +2860,234 @@ function Dashboard({ onBack }) {
 
   // Shared card style
   const cardS = {
-    background: D.card, border: `1px solid ${D.border}`, borderRadius: 16, padding: 24,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.1)",
+    background: D.card, border: `1px solid ${D.border}`, borderRadius: 14, padding: 16,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
   };
 
   return (
     <div style={{
-      minHeight: "100vh", background: D.bg,
+      minHeight: "100%", background: D.bg,
       fontFamily: "'Plus Jakarta Sans', sans-serif",
       animation: "fadeIn 0.4s ease",
+      overflowY: "auto",
     }}>
       {/* ── TOP NAV BAR ── */}
       <div style={{
         background: D.surface, borderBottom: `1px solid ${D.border}`,
-        padding: "14px 40px", display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center",
         position: "sticky", top: 0, zIndex: 10,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: `linear-gradient(135deg, ${D.accent}, ${D.mint})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
-              {"\u26BD"}
-            </div>
-            <span style={{ color: D.text, fontSize: 16, fontWeight: 800, letterSpacing: -0.3 }}>FanMatch</span>
-            <span style={{ color: D.textDim, fontSize: 12, fontWeight: 500 }}>Intelligence</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 26, height: 26, borderRadius: 6, background: `linear-gradient(135deg, ${D.accent}, ${D.mint})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>
+            {"\u26BD"}
           </div>
-          <div style={{ width: 1, height: 20, background: D.border }} />
-          <span style={{ color: D.textMuted, fontSize: 12 }}>Moms 29&ndash;44 Segment</span>
-          <span style={{
-            background: `${D.mint}15`, border: `1px solid ${D.mint}44`, borderRadius: 6,
-            padding: "2px 8px", fontSize: 10, fontWeight: 700, color: D.mint,
-          }}>DEMO</span>
+          <span style={{ color: D.text, fontSize: 13, fontWeight: 800 }}>FanMatch</span>
+          <span style={{ color: D.textDim, fontSize: 10 }}>Intelligence</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ color: D.textMuted, fontSize: 12 }}>FIFA World Cup 2026</span>
-          <button onClick={onBack} style={{
-            background: D.card, border: `1px solid ${D.border}`, borderRadius: 8,
-            padding: "7px 16px", color: D.textMuted, fontSize: 12, fontWeight: 600, cursor: "pointer",
-          }}>
-            &larr; Back to App
-          </button>
-        </div>
+        <button onClick={onBack} style={{
+          background: D.card, border: `1px solid ${D.border}`, borderRadius: 8,
+          padding: "5px 12px", color: D.textMuted, fontSize: 11, fontWeight: 600, cursor: "pointer",
+        }}>
+          &larr; Back
+        </button>
       </div>
 
       {/* ── MAIN CONTENT ── */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 40px 48px" }}>
+      <div style={{ padding: "16px 14px 24px" }}>
 
         {/* Section: Headline */}
-        <div style={{ marginBottom: 32 }}>
-          <p style={{ color: D.accent, fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Audience Intelligence</p>
-          <h1 style={{ color: D.text, fontSize: 32, fontWeight: 800, lineHeight: 1.2, marginBottom: 8 }}>
-            Moms 29&ndash;44: The Underserved Power Segment
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <p style={{ color: D.accent, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>Audience Intelligence</p>
+            <InfoBtn info={INFO.dashboardKPIs} style={{ width: 20, height: 20, fontSize: 11 }} />
+            <span style={{
+              background: `${D.mint}15`, border: `1px solid ${D.mint}44`, borderRadius: 4,
+              padding: "1px 6px", fontSize: 9, fontWeight: 700, color: D.mint,
+            }}>DEMO</span>
+          </div>
+          <h1 style={{ color: D.text, fontSize: 20, fontWeight: 800, lineHeight: 1.2, marginBottom: 6 }}>
+            Moms 29 to 44
           </h1>
-          <p style={{ color: D.textMuted, fontSize: 15, maxWidth: 700, lineHeight: 1.6 }}>
-            FanMatch collects 14 first-party data signals per fan. Here&rsquo;s what the data reveals about the mom segment &mdash; psychographics, city preferences, and persona clusters.
+          <p style={{ color: D.textMuted, fontSize: 12, lineHeight: 1.5 }}>
+            14 first-party data signals per fan. Psychographics, city preferences, and persona clusters.
           </p>
         </div>
 
-        {/* KPIs row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
+        {/* KPIs — 2x2 grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
           {kpis.map((k, i) => (
             <div key={i} style={{
-              ...cardS, padding: "20px 22px", position: "relative", overflow: "hidden",
+              ...cardS, padding: "14px 14px", position: "relative", overflow: "hidden",
             }}>
-              <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `${k.color}18`, borderRadius: "0 0 0 80px" }} />
-              <p style={{ color: D.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 8 }}>{k.label}</p>
-              <p style={{ color: D.text, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{k.value}</p>
-              <p style={{ color: k.color, fontSize: 11, fontWeight: 600, marginTop: 6 }}>{k.delta}</p>
+              <div style={{ position: "absolute", top: 0, right: 0, width: 50, height: 50, background: `${k.color}18`, borderRadius: "0 0 0 50px" }} />
+              <p style={{ color: D.textMuted, fontSize: 10, fontWeight: 600, marginBottom: 4 }}>{k.label}</p>
+              <p style={{ color: D.text, fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{k.value}</p>
+              <p style={{ color: k.color, fontSize: 9, fontWeight: 600, marginTop: 4 }}>{k.delta}</p>
             </div>
           ))}
         </div>
 
-        {/* ── TWO-COLUMN: Map + Spider ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
-
-          {/* Geo Map */}
-          <div style={{ ...cardS, padding: "20px 16px 16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, padding: "0 8px" }}>
-              <div>
-                <h3 style={{ color: D.text, fontSize: 15, fontWeight: 700 }}>Fan Heatmap &mdash; Host Cities</h3>
-                <p style={{ color: D.textMuted, fontSize: 11 }}>Density across 16 FIFA 2026 venues</p>
-              </div>
-              <span style={{ background: `${D.mint}15`, border: `1px solid ${D.mint}55`, borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: D.mint }}>LIVE</span>
+        {/* Geo Map — full width */}
+        <div style={{ ...cardS, padding: "14px 10px 10px", marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, padding: "0 4px" }}>
+            <div>
+              <h3 style={{ color: D.text, fontSize: 13, fontWeight: 700 }}>Fan Heatmap</h3>
+              <p style={{ color: D.textMuted, fontSize: 10 }}>16 FIFA 2026 venues</p>
             </div>
-            <GeoMap cities={cityData} theme={D} />
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10, padding: "0 6px" }}>
-              {cityData.slice(0, 5).map((c) => (
-                <div key={c.name} style={{ background: D.surface, borderRadius: 6, padding: "3px 10px", display: "flex", alignItems: "center", gap: 5, border: `1px solid ${D.border}` }}>
-                  <div style={{ width: 6, height: 6, borderRadius: 3, background: c.color }} />
-                  <span style={{ color: D.text, fontSize: 10, fontWeight: 700 }}>{c.shortName}</span>
-                  <span style={{ color: D.textMuted, fontSize: 10 }}>{c.fans.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
+            <span style={{ background: `${D.mint}15`, border: `1px solid ${D.mint}55`, borderRadius: 4, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: D.mint }}>LIVE</span>
           </div>
-
-          {/* Combined Spider Chart */}
-          <div style={{ ...cardS }}>
-            <h3 style={{ color: D.text, fontSize: 15, fontWeight: 700, marginBottom: 2 }}>Persona DNA Profiles</h3>
-            <p style={{ color: D.textMuted, fontSize: 11, marginBottom: 8 }}>Psychographic overlay of 4 mom personas</p>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <svg width={spiderSize} height={spiderSize} viewBox={`0 0 ${spiderSize} ${spiderSize}`}>
-                {/* Grid rings — 5 levels */}
-                {[0.2, 0.4, 0.6, 0.8, 1.0].map((pct, ri) => {
-                  const pts = Array.from({ length: 6 }, (_, i) => sGp(i, pct).join(",")).join(" ");
-                  return <polygon key={ri} points={pts} fill="none" stroke={D.border} strokeWidth={1} strokeDasharray={pct < 1 ? "3,3" : "none"} />;
-                })}
-                {/* Axis spokes */}
-                {Array.from({ length: 6 }, (_, i) => {
-                  const [ex, ey] = sGp(i, 1);
-                  return <line key={i} x1={sCx} y1={sCy} x2={ex} y2={ey} stroke={D.border} strokeWidth={0.8} />;
-                })}
-                {/* Persona polygons — flat fill with low opacity */}
-                {[...personas].reverse().map((p) => (
-                  <polygon key={p.id} points={sPoly(p.dna)} fill={p.color} fillOpacity={0.1} stroke={p.color} strokeWidth={2.5} strokeLinejoin="round" />
-                ))}
-                {/* Vertex dots */}
-                {personas.map((p) => (
-                  sKeys.map((k, i) => {
-                    const [cx, cy] = sGp(i, (p.dna[k] || 50) / 100);
-                    return <circle key={`${p.id}-${i}`} cx={cx} cy={cy} r={3} fill={p.color} />;
-                  })
-                ))}
-                {/* Axis labels */}
-                {Array.from({ length: 6 }, (_, i) => {
-                  const [lx, ly] = sGp(i, 1.2);
-                  return (
-                    <text key={i} x={lx} y={ly} fill={D.text} fontSize={11} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
-                      {sLabels[i]}
-                    </text>
-                  );
-                })}
-              </svg>
-            </div>
-            {/* Inline legend */}
-            <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 4 }}>
-              {personas.map((p) => (
-                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 2, background: p.color }} />
-                  <span style={{ color: D.textMuted, fontSize: 11, fontWeight: 600 }}>{p.name.replace("The ", "")}</span>
-                </div>
-              ))}
-            </div>
+          <GeoMap cities={cityData} theme={D} />
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8, padding: "0 4px" }}>
+            {cityData.slice(0, 5).map((c) => (
+              <div key={c.name} style={{ background: D.surface, borderRadius: 4, padding: "2px 8px", display: "flex", alignItems: "center", gap: 4, border: `1px solid ${D.border}` }}>
+                <div style={{ width: 5, height: 5, borderRadius: 3, background: c.color }} />
+                <span style={{ color: D.text, fontSize: 9, fontWeight: 700 }}>{c.shortName}</span>
+                <span style={{ color: D.textMuted, fontSize: 9 }}>{c.fans.toLocaleString()}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* ── PERSONA CARDS ROW ── */}
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ color: D.text, fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Persona Breakdown</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        {/* Spider Chart — full width */}
+        <div style={{ ...cardS, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+            <h3 style={{ color: D.text, fontSize: 13, fontWeight: 700 }}>Persona DNA Profiles</h3>
+            <InfoBtn info={INFO.dashboardSpider} style={{ width: 20, height: 20, fontSize: 11 }} />
+          </div>
+          <p style={{ color: D.textMuted, fontSize: 10, marginBottom: 6 }}>Psychographic overlay of 4 personas</p>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <svg width={spiderSize} height={spiderSize} viewBox={`0 0 ${spiderSize} ${spiderSize}`}>
+              {[0.2, 0.4, 0.6, 0.8, 1.0].map((pct, ri) => {
+                const pts = Array.from({ length: 6 }, (_, i) => sGp(i, pct).join(",")).join(" ");
+                return <polygon key={ri} points={pts} fill="none" stroke={D.border} strokeWidth={1} strokeDasharray={pct < 1 ? "3,3" : "none"} />;
+              })}
+              {Array.from({ length: 6 }, (_, i) => {
+                const [ex, ey] = sGp(i, 1);
+                return <line key={i} x1={sCx} y1={sCy} x2={ex} y2={ey} stroke={D.border} strokeWidth={0.8} />;
+              })}
+              {[...personas].reverse().map((p) => (
+                <polygon key={p.id} points={sPoly(p.dna)} fill={p.color} fillOpacity={0.1} stroke={p.color} strokeWidth={2} strokeLinejoin="round" />
+              ))}
+              {personas.map((p) => (
+                sKeys.map((k, i) => {
+                  const [cx, cy] = sGp(i, (p.dna[k] || 50) / 100);
+                  return <circle key={`${p.id}-${i}`} cx={cx} cy={cy} r={2.5} fill={p.color} />;
+                })
+              ))}
+              {Array.from({ length: 6 }, (_, i) => {
+                const [lx, ly] = sGp(i, 1.22);
+                return (
+                  <text key={i} x={lx} y={ly} fill={D.text} fontSize={9} fontWeight={700} textAnchor="middle" dominantBaseline="middle">
+                    {sLabels[i]}
+                  </text>
+                );
+              })}
+            </svg>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+            {personas.map((p) => (
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: p.color }} />
+                <span style={{ color: D.textMuted, fontSize: 10, fontWeight: 600 }}>{p.name.replace("The ", "")}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── PERSONA CARDS — 2-col grid ── */}
+        <div style={{ marginBottom: 16 }}>
+          <h2 style={{ color: D.text, fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Persona Breakdown</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {personas.map((p) => (
               <div key={p.id} style={{
-                ...cardS, borderTop: `3px solid ${p.color}`, padding: "20px 18px",
+                ...cardS, borderTop: `3px solid ${p.color}`, padding: "14px 12px",
                 display: "flex", flexDirection: "column",
               }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-                  <h4 style={{ color: D.text, fontSize: 14, fontWeight: 700 }}>{p.name}</h4>
-                  <span style={{ color: p.color, fontSize: 20, fontWeight: 800 }}>{p.pct}%</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                  <h4 style={{ color: D.text, fontSize: 11, fontWeight: 700 }}>{p.name}</h4>
+                  <span style={{ color: p.color, fontSize: 16, fontWeight: 800 }}>{p.pct}%</span>
                 </div>
-                <p style={{ color: D.textMuted, fontSize: 12, lineHeight: 1.5, marginBottom: 14, flex: 1 }}>{p.tagline}</p>
-                <div style={{ borderTop: `1px solid ${D.border}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ color: D.textMuted, fontSize: 10, lineHeight: 1.4, marginBottom: 10, flex: 1 }}>{p.tagline}</p>
+                <div style={{ borderTop: `1px solid ${D.border}`, paddingTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <p style={{ color: D.textDim, fontSize: 10, marginBottom: 2 }}>Revenue</p>
-                    <p style={{ color: p.color, fontSize: 16, fontWeight: 800 }}>{p.revenue}</p>
+                    <p style={{ color: D.textDim, fontSize: 8, marginBottom: 1 }}>Revenue</p>
+                    <p style={{ color: p.color, fontSize: 13, fontWeight: 800 }}>{p.revenue}</p>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <p style={{ color: D.textDim, fontSize: 10, marginBottom: 2 }}>Fans</p>
-                    <p style={{ color: D.text, fontSize: 13, fontWeight: 700 }}>{p.count}</p>
+                    <p style={{ color: D.textDim, fontSize: 8, marginBottom: 1 }}>Fans</p>
+                    <p style={{ color: D.text, fontSize: 11, fontWeight: 700 }}>{p.count}</p>
                   </div>
                 </div>
-                <p style={{ color: D.textDim, fontSize: 10, marginTop: 10 }}>{p.partners}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── TWO-COLUMN: Values + Data Capture ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
-
-          {/* Values Breakdown */}
-          <div style={{ ...cardS }}>
-            <h3 style={{ color: D.text, fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Core Values Breakdown</h3>
-            <p style={{ color: D.textMuted, fontSize: 11, marginBottom: 16 }}>Top values selected by moms 29&ndash;44 segment</p>
-            <div style={{ marginBottom: 20 }}>
-              <p style={{ color: D.textMuted, fontSize: 12, fontWeight: 600, marginBottom: 10 }}>Viewing Preference</p>
-              <div style={{ display: "flex", gap: 3, borderRadius: 6, overflow: "hidden", height: 28 }}>
-                <div style={{ width: "72%", background: D.mint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff" }}>
-                  Home / Digital 72%
-                </div>
-                <div style={{ width: "28%", background: D.rose, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff" }}>
-                  Live 28%
-                </div>
+        {/* Values Breakdown */}
+        <div style={{ ...cardS, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+            <h3 style={{ color: D.text, fontSize: 13, fontWeight: 700 }}>Core Values</h3>
+            <InfoBtn info={INFO.dashboardValues} style={{ width: 20, height: 20, fontSize: 11 }} />
+          </div>
+          <p style={{ color: D.textMuted, fontSize: 10, marginBottom: 12 }}>Top values, moms 29 to 44</p>
+          <div style={{ marginBottom: 14 }}>
+            <p style={{ color: D.textMuted, fontSize: 10, fontWeight: 600, marginBottom: 6 }}>Viewing Preference</p>
+            <div style={{ display: "flex", gap: 2, borderRadius: 5, overflow: "hidden", height: 22 }}>
+              <div style={{ width: "72%", background: D.mint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#fff" }}>
+                Digital 72%
+              </div>
+              <div style={{ width: "28%", background: D.rose, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#fff" }}>
+                Live 28%
               </div>
             </div>
-            {topValues.map((v, i) => (
-              <div key={i} style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ color: D.text, fontSize: 13, fontWeight: 500 }}>{v.label}</span>
-                  <span style={{ color: v.color, fontSize: 13, fontWeight: 700 }}>{v.pct}%</span>
-                </div>
-                <div style={{ height: 6, borderRadius: 3, background: D.surface }}>
-                  <div style={{ height: "100%", width: `${v.pct}%`, borderRadius: 3, background: `linear-gradient(90deg, ${v.color}cc, ${v.color})`, transition: "width 0.8s ease" }} />
-                </div>
+          </div>
+          {topValues.map((v, i) => (
+            <div key={i} style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                <span style={{ color: D.text, fontSize: 11, fontWeight: 500 }}>{v.label}</span>
+                <span style={{ color: v.color, fontSize: 11, fontWeight: 700 }}>{v.pct}%</span>
               </div>
+              <div style={{ height: 5, borderRadius: 3, background: D.surface }}>
+                <div style={{ height: "100%", width: `${v.pct}%`, borderRadius: 3, background: `linear-gradient(90deg, ${v.color}cc, ${v.color})`, transition: "width 0.8s ease" }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Data Capture */}
+        <div style={{ ...cardS, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+            <h3 style={{ color: D.text, fontSize: 13, fontWeight: 700 }}>Data Per User</h3>
+            <InfoBtn info={INFO.dashboardData} style={{ width: 20, height: 20, fontSize: 11 }} />
+          </div>
+          <p style={{ color: D.accent, fontSize: 28, fontWeight: 800, marginBottom: 10 }}>14 <span style={{ fontSize: 12, fontWeight: 600, color: D.textMuted }}>data points</span></p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 14 }}>
+            {dataPoints.map((d, i) => (
+              <span key={i} style={{
+                background: D.surface, border: `1px solid ${D.border}`, borderRadius: 5, padding: "3px 8px",
+                fontSize: 10, color: D.textMuted, fontWeight: 500,
+              }}>
+                {d}
+              </span>
             ))}
           </div>
-
-          {/* Data Capture */}
-          <div style={{ ...cardS, display: "flex", flexDirection: "column" }}>
-            <h3 style={{ color: D.text, fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Data Captured Per User</h3>
-            <p style={{ color: D.textMuted, fontSize: 11, marginBottom: 16 }}>Every fan interaction generates structured first-party data</p>
-            <p style={{ color: D.accent, fontSize: 40, fontWeight: 800, marginBottom: 16 }}>14 <span style={{ fontSize: 16, fontWeight: 600, color: D.textMuted }}>data points per user</span></p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20, flex: 1 }}>
-              {dataPoints.map((d, i) => (
-                <span key={i} style={{
-                  background: D.surface, border: `1px solid ${D.border}`, borderRadius: 6, padding: "5px 12px",
-                  fontSize: 12, color: D.textMuted, fontWeight: 500,
-                }}>
-                  {d}
-                </span>
-              ))}
-            </div>
-            <button style={{
-              background: `linear-gradient(135deg, ${D.accent}, ${D.sky})`, color: "#fff",
-              border: "none", borderRadius: 10, padding: "12px 24px",
-              fontSize: 13, fontWeight: 700, cursor: "pointer", width: "100%",
-              boxShadow: `0 4px 14px ${D.accent}44`,
-            }}>
-              Export Audience Data
-            </button>
-          </div>
+          <button style={{
+            background: `linear-gradient(135deg, ${D.accent}, ${D.sky})`, color: "#fff",
+            border: "none", borderRadius: 10, padding: "10px 20px",
+            fontSize: 12, fontWeight: 700, cursor: "pointer", width: "100%",
+            boxShadow: `0 4px 14px ${D.accent}44`,
+          }}>
+            Export Audience Data
+          </button>
         </div>
 
         {/* Footer */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: `1px solid ${D.border}` }}>
-          <p style={{ color: D.textDim, fontSize: 11 }}>
-            FanMatch Intelligence &mdash; Wasserman x MIT Sloan SSAC 2026
+        <div style={{ textAlign: "center", paddingTop: 12, borderTop: `1px solid ${D.border}` }}>
+          <p style={{ color: D.textDim, fontSize: 9, marginBottom: 2 }}>
+            FanMatch Intelligence. Wasserman x MIT Sloan SSAC 2026
           </p>
-          <p style={{ color: D.textDim, fontSize: 11 }}>
-            First-party data from FanMatch quiz (n = 4,368 moms)
+          <p style={{ color: D.textDim, fontSize: 9 }}>
+            First-party data (n = 4,368 moms)
           </p>
         </div>
       </div>
@@ -2746,7 +3110,6 @@ export default function FanMatch() {
   const [xpFlash, setXpFlash] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showDataValue, setShowDataValue] = useState(false);
-  const [showWhyPopup, setShowWhyPopup] = useState(true);
   const [fanDNA, setFanDNA] = useState(null);
   const [primaryMatch, setPrimaryMatch] = useState(null);
   const [secondaryMatch, setSecondaryMatch] = useState(null);
@@ -2858,16 +3221,16 @@ export default function FanMatch() {
       fontFamily: "'Plus Jakarta Sans', sans-serif",
       background: COLORS.bg,
       color: COLORS.white,
-      minHeight: "100dvh",
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
       position: "relative",
     }}>
       <style>{globalStyles}</style>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       <FloatingOrbs />
-      {screen > 0 && <ProgressBar screen={screen} xp={xp} />}
-      {screen > 0 && screen <= 8 && <XPCounter xp={xp} flash={xpFlash} />}
+      {screen > 0 && <ProgressBar screen={screen} xp={xp} flash={xpFlash} />}
       {renderScreen()}
-      {showWhyPopup && <WhyPopup onClose={() => setShowWhyPopup(false)} />}
     </div>
   );
 }
@@ -2878,7 +3241,7 @@ export default function FanMatch() {
 
 const globalStyles = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: ${COLORS.bg}; overflow-x: hidden; }
+  body { background: #060e1a; overflow-x: hidden; }
   button { font-family: 'Plus Jakarta Sans', sans-serif; }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(16px); }
@@ -2933,6 +3296,10 @@ const globalStyles = `
   @keyframes shimmerSlide {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
+  }
+  @keyframes digitRollUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
   }
   .orb { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; will-change:transform; }
   ::-webkit-scrollbar { width: 4px; }
